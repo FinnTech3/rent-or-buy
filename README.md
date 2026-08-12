@@ -50,17 +50,20 @@ guessing at. Showing that is the entire point.
 - `src/lib/sensitivity.ts` — the range and the tornado: sweep the three
   drivers that matter, report the outcome band and which assumption swings
   it most.
-- `src/lib/montecarlo.ts` — a thousand simulated futures: draws each driver
-  from a distribution and reports the probability buying wins plus the middle
-  80% of dollar outcomes.
+- `src/lib/montecarlo.ts` / `src/lib/montecarloPaths.ts` — Monte Carlo two
+  ways: one draws each driver's horizon-average rate; the other (the one the
+  UI uses) draws a fresh return *every year* and compounds it month by month,
+  capturing sequence-of-returns risk. Both report the probability buying wins
+  and the middle-80% dollar span; a test pins the path engine to the
+  deterministic model at zero volatility.
 - `src/cli/analyze.ts` — the headless report above. `npm run analyze [years]`.
-- 62 tests, including the economics moving the right way in every direction.
+- 67 tests, including the economics moving the right way in every direction.
 
 ## Running
 
 ```
 npm install
-npm test              # 62 tests, all green
+npm test              # 67 tests, all green
 npm run analyze 10    # the report, for a 10-year horizon
 ```
 
@@ -104,12 +107,6 @@ An honest tool is honest about its edges. This model, in its current form:
 - **Assumes a fixed rate and no refinancing.** No ARMs, no rate path, no
   refi. A fixed 30-year is the honest default; the rest is a forecast on top
   of a forecast.
-- **Monte Carlo randomizes the long-run average, not the path.** The
-  simulation (`src/lib/montecarlo.ts`) draws each driver's horizon-average
-  rate from a distribution whose spread shrinks with time (σ ∝ 1/√years) and
-  reports a probability plus percentile outcomes — but it still does not
-  model year-by-year *sequence-of-returns* risk, which would need a
-  path-based engine. That's the next honest step, not this one.
 - **Grows property tax with market value.** Places with assessment caps
   (California's Prop 13, say) would tax more slowly than this assumes.
 

@@ -21,7 +21,7 @@ import { project, terminal } from "../lib/model.js";
 import type { Inputs, MonthPoint } from "../lib/model.js";
 import { analyse, verdict } from "../lib/sensitivity.js";
 import type { Sensitivity, Verdict } from "../lib/sensitivity.js";
-import { simulate } from "../lib/montecarlo.js";
+import { simulatePaths } from "../lib/montecarloPaths.js";
 import type { MonteCarloResult } from "../lib/montecarlo.js";
 
 // ─────────────────────────── formatting ───────────────────────────────────
@@ -58,7 +58,7 @@ export function App(): JSX.Element {
   const { inputs, horizonMonths } = useMemo(() => buildInputs(form), [form]);
   const proj = useMemo(() => project(inputs, horizonMonths), [inputs, horizonMonths]);
   const sens = useMemo(() => analyse(inputs, horizonMonths), [inputs, horizonMonths]);
-  const mc = useMemo(() => simulate(inputs, horizonMonths, { trials: 800 }), [inputs, horizonMonths]);
+  const mc = useMemo(() => simulatePaths(inputs, horizonMonths, { trials: 800 }), [inputs, horizonMonths]);
   const end = terminal(proj);
   const call = verdict(sens);
 
@@ -358,8 +358,9 @@ function RangeBar({ sens, mc }: { sens: Sensitivity; mc: MonteCarloResult }): JS
         </div>
       </div>
       <p className="rb-mc">
-        Across <b>{mc.trials.toLocaleString("en-US")}</b> simulated futures,
-        buying wins <b style={{ color: mc.pBuyWins >= 0.5 ? "var(--buy)" : "var(--rent)" }}>{Math.round(mc.pBuyWins * 100)}%</b> of
+        Across <b>{mc.trials.toLocaleString("en-US")}</b> futures simulated
+        year&#8209;by&#8209;year, buying wins{" "}
+        <b style={{ color: mc.pBuyWins >= 0.5 ? "var(--buy)" : "var(--rent)" }}>{Math.round(mc.pBuyWins * 100)}%</b> of
         the time. Median outcome {signed(mc.median)}; the middle 80% span{" "}
         {signed(mc.p10)} to {signed(mc.p90)}.
       </p>
