@@ -11,10 +11,10 @@
 import { useEffect, useMemo, useState } from "react";
 import type { ReactNode } from "react";
 
-import { DEFAULTS, PRESETS, buildInputs } from "./form.js";
+import { DEFAULTS, PRESETS, STANDARD_DEDUCTION, buildInputs } from "./form.js";
 import type { FormState } from "./form.js";
 import { decode, encode } from "./urlState.js";
-import { formatUSD, formatUSD0 } from "../lib/money.js";
+import { dollarsToCents, formatUSD, formatUSD0 } from "../lib/money.js";
 import type { Cents } from "../lib/money.js";
 import { monthlyPayment } from "../lib/mortgage.js";
 import { project, terminal } from "../lib/model.js";
@@ -156,7 +156,13 @@ function InputsPanel(props: {
         <NumberField label="Home appreciation / yr" value={form.homeAppreciationPct} onChange={(v) => set("homeAppreciationPct", v)} step={0.5} suffix="%" accent />
         <NumberField label="Investment return / yr" value={form.investmentReturnPct} onChange={(v) => set("investmentReturnPct", v)} step={0.5} suffix="%" accent />
         <NumberField label="Inflation / yr" value={form.inflationPct} onChange={(v) => set("inflationPct", v)} step={0.25} suffix="%" />
-        <NumberField label="Marginal tax rate (deduction)" value={form.marginalTaxRatePct} onChange={(v) => set("marginalTaxRatePct", v)} step={1} suffix="%" />
+      </Group>
+
+      <Group title="Taxes (optional — usually a wash)">
+        <FilingField value={form.filingStatus} onChange={(v) => set("filingStatus", v)} />
+        <NumberField label="Marginal tax rate" value={form.marginalTaxRatePct} onChange={(v) => set("marginalTaxRatePct", v)} step={1} suffix="%" />
+        <MoneyField label="State/local tax / yr" value={form.stateLocalTaxAnnual} onChange={(v) => set("stateLocalTaxAnnual", v)} />
+        <MoneyField label="Other itemized / yr" value={form.otherItemizedAnnual} onChange={(v) => set("otherItemizedAnnual", v)} />
       </Group>
 
       <Group title="Horizon">
@@ -199,6 +205,25 @@ function CopyLink(): JSX.Element {
     <button className="rb-ghost-btn" onClick={onCopy}>
       {copied ? "Link copied ✓" : "Copy link to this scenario"}
     </button>
+  );
+}
+
+function FilingField(props: {
+  value: FormState["filingStatus"]; onChange: (v: FormState["filingStatus"]) => void;
+}): JSX.Element {
+  const options: FormState["filingStatus"][] = ["single", "married"];
+  return fieldRow(
+    "Filing status",
+    <span className="rb-filing">
+      {options.map((s) => (
+        <button
+          key={s}
+          className={`rb-seg${props.value === s ? " rb-seg-on" : ""}`}
+          onClick={() => props.onChange(s)}
+        >{s}</button>
+      ))}
+    </span>,
+    `standard deduction ${formatUSD0(dollarsToCents(String(STANDARD_DEDUCTION[props.value])))}`,
   );
 }
 
@@ -564,6 +589,11 @@ function Tokens(): JSX.Element {
       .rb-num-input { position: relative; }
       .rb-suffix { color: var(--dim); font-size: 12px; width: 20px; }
       .rb-num-accent .rb-input { border-color: var(--accent); background: var(--accent-soft); }
+      .rb-filing { display: inline-flex; border: 1px solid var(--line-2); border-radius: 6px; overflow: hidden; }
+      .rb-seg { font: inherit; font-size: 12px; text-transform: capitalize; color: var(--dim);
+        background: transparent; border: none; padding: 5px 12px; cursor: pointer; }
+      .rb-seg + .rb-seg { border-left: 1px solid var(--line-2); }
+      .rb-seg-on { background: var(--accent-soft); color: var(--accent); font-weight: 600; }
       input[type=number] { -moz-appearance: textfield; }
       input[type=number]::-webkit-outer-spin-button, input[type=number]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
       .rb-payline { font-size: 12px; color: var(--dim); margin-top: 2px; }

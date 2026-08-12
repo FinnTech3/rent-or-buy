@@ -25,9 +25,19 @@ export interface FormState {
   investmentReturnPct: number;
   inflationPct: number;
   marginalTaxRatePct: number;
+  filingStatus: "single" | "married";
+  stateLocalTaxAnnual: string;
+  otherItemizedAnnual: string;
   pmiRatePct: number;
   horizonYears: number;
 }
+
+/** Approximate current-year federal standard deductions. The mortgage
+ *  deduction only helps to the extent itemizing beats these. */
+export const STANDARD_DEDUCTION: Record<FormState["filingStatus"], number> = {
+  single: 15000,
+  married: 30000,
+};
 
 export const DEFAULTS: FormState = {
   homePrice: "400000",
@@ -47,6 +57,9 @@ export const DEFAULTS: FormState = {
   investmentReturnPct: 6,
   inflationPct: 2.5,
   marginalTaxRatePct: 0,
+  filingStatus: "married",
+  stateLocalTaxAnnual: "0",
+  otherItemizedAnnual: "0",
   pmiRatePct: 0.5,
   horizonYears: 10,
 };
@@ -58,6 +71,9 @@ export const STRING_KEYS: ReadonlySet<keyof FormState> = new Set([
   "hoaMonthly",
   "monthlyRent",
   "rentersInsuranceMonthly",
+  "filingStatus",
+  "stateLocalTaxAnnual",
+  "otherItemizedAnnual",
 ]);
 
 /** Convert the string/number form into the engine's integer-cents Inputs.
@@ -95,6 +111,9 @@ export function buildInputs(f: FormState): { inputs: Inputs; horizonMonths: numb
       investmentReturnPct: f.investmentReturnPct,
       inflationPct: f.inflationPct,
       marginalTaxRatePct: f.marginalTaxRatePct,
+      standardDeduction: centsOr(String(STANDARD_DEDUCTION[f.filingStatus] ?? STANDARD_DEDUCTION.married), 30000),
+      otherSaltAnnual: centsOr(f.stateLocalTaxAnnual, 0),
+      otherItemizedAnnual: centsOr(f.otherItemizedAnnual, 0),
       pmiRatePct: f.pmiRatePct,
     },
   };

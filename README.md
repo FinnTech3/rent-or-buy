@@ -57,13 +57,13 @@ guessing at. Showing that is the entire point.
   and the middle-80% dollar span; a test pins the path engine to the
   deterministic model at zero volatility.
 - `src/cli/analyze.ts` — the headless report above. `npm run analyze [years]`.
-- 67 tests, including the economics moving the right way in every direction.
+- 73 tests, including the economics moving the right way in every direction.
 
 ## Running
 
 ```
 npm install
-npm test              # 67 tests, all green
+npm test              # 73 tests, all green
 npm run analyze 10    # the report, for a 10-year horizon
 ```
 
@@ -86,6 +86,16 @@ The buyer's edge is forced saving and leverage on appreciation; the renter's
 edge is a large liquid sum invested from day one and no transaction costs.
 Which wins is genuinely uncertain, which is why the output is a range.
 
+**The tax deduction is modeled honestly, which usually means it's worth
+nothing.** "You get to write off the mortgage interest" is the most-repeated
+reason to buy and the most overstated. The engine only credits the marginal
+rate on the amount by which itemizing *beats* the standard deduction, after
+capping state-and-local taxes at the $10k SALT limit — and for a normal
+household, post-2018, itemized interest plus capped SALT falls short of the
+~$30k standard deduction, so the benefit is exactly $0. It turns positive
+only for large loans, high-tax states, or single filers. Showing that zero,
+rather than a phantom write-off, is the point.
+
 **Conventions that change the answer, stated plainly.** Home value and the
 investment portfolios compound monthly. Rent, property tax, maintenance,
 insurance and HOA step once a year, the way real leases and assessments do.
@@ -99,11 +109,6 @@ integer tick grid, ported for the same reason.
 
 An honest tool is honest about its edges. This model, in its current form:
 
-- **Models the tax deduction simply, and off by default.** The optional
-  marginal-rate deduction on mortgage interest + property tax ignores the
-  SALT cap and the standard-deduction crossover — the two things that make
-  the real benefit far smaller than calculators claim — so it defaults to
-  zero rather than overstate buying.
 - **Assumes a fixed rate and no refinancing.** No ARMs, no rate path, no
   refi. A fixed 30-year is the honest default; the rest is a forecast on top
   of a forecast.

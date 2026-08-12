@@ -20,6 +20,7 @@
  */
 
 import type { Inputs } from "./model.js";
+import { monthlyTaxBenefit } from "./model.js";
 import { monthlyPayment, monthlyRate } from "./mortgage.js";
 import { applyRate, roundToCents } from "./money.js";
 import type { Cents } from "./money.js";
@@ -89,7 +90,7 @@ function simulatePath(
     const maintenance = roundToCents((homeValue / 100) * (inputs.maintenancePct / 100) / 12);
     const insurance = roundToCents((inputs.homeInsuranceAnnual / 100) * inflFactor / 12);
     const hoa = roundToCents((inputs.hoaMonthly / 100) * inflFactor);
-    const taxBenefit = roundToCents((inputs.marginalTaxRatePct / 100) * ((interest + propertyTax) / 100));
+    const taxBenefit = monthlyTaxBenefit(inputs, interest, propertyTax);
     const pmi = balance > pmiThreshold ? pmiMonthlyAmount : 0;
     const buyerOutlay = mortgagePay + propertyTax + maintenance + insurance + hoa + pmi - taxBenefit;
 

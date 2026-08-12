@@ -21,6 +21,9 @@ const BASE: Inputs = {
   investmentReturnPct: 6,
   inflationPct: 2.5,
   marginalTaxRatePct: 0,
+  standardDeduction: dollarsToCents("30000"),
+  otherSaltAnnual: dollarsToCents("0"),
+  otherItemizedAnnual: dollarsToCents("0"),
   pmiRatePct: 0.5,
 };
 

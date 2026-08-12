@@ -21,6 +21,9 @@ const BASE: Inputs = {
   investmentReturnPct: 6,
   inflationPct: 2.5,
   marginalTaxRatePct: 0,
+  standardDeduction: dollarsToCents("30000"),
+  otherSaltAnnual: dollarsToCents("0"),
+  otherItemizedAnnual: dollarsToCents("0"),
   pmiRatePct: 0.5,
 };
 
@@ -89,8 +92,23 @@ describe("project — economics move the right way", () => {
       .toBeGreaterThan(at({ downPayment: dollarsToCents("40000") }));
   });
 
-  it("the tax deduction, when modeled, helps buying", () => {
-    expect(at({ marginalTaxRatePct: 32 })).toBeGreaterThan(at({ marginalTaxRatePct: 0 }));
+  it("the tax deduction is usually worth nothing — the standard deduction wins", () => {
+    // The honest finding: for a normal married-filer scenario, itemized
+    // interest + capped SALT falls short of the standard deduction, so a
+    // 32% marginal rate buys exactly zero benefit.
+    expect(at({ marginalTaxRatePct: 32 })).toBe(at({ marginalTaxRatePct: 0 }));
+  });
+
+  it("the deduction helps only once itemizing clears the standard deduction", () => {
+    // Big loan, high SALT, and a single filer's lower standard deduction:
+    // now itemizing wins and the marginal rate actually buys something.
+    const heavy = {
+      downPayment: dollarsToCents("40000"),
+      standardDeduction: dollarsToCents("15000"),
+      otherSaltAnnual: dollarsToCents("8000"),
+    };
+    expect(at({ ...heavy, marginalTaxRatePct: 32 }))
+      .toBeGreaterThan(at({ ...heavy, marginalTaxRatePct: 0 }));
   });
 
   it("PMI hurts buying, and only with under-20% down", () => {

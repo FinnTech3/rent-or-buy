@@ -62,13 +62,46 @@ export interface Inputs {
   readonly investmentReturnPct: number;
   /** Drives insurance and HOA growth. */
   readonly inflationPct: number;
-  /** Marginal rate for the optional mortgage-interest + property-tax
-   *  deduction. 0 models no deduction. */
+  /** Marginal rate applied to the *incremental* itemized benefit over the
+   *  standard deduction. 0 models no deduction at all. */
   readonly marginalTaxRatePct: number;
+  /** Federal standard deduction for the household. The mortgage-interest /
+   *  SALT write-off is only worth anything to the extent itemizing beats
+   *  this — which, post-2018, it usually doesn't. */
+  readonly standardDeduction: Cents;
+  /** State/local income (and other) taxes that share the $10k SALT cap with
+   *  property tax. */
+  readonly otherSaltAnnual: Cents;
+  /** Other itemizable deductions (charitable, etc.) the household already
+   *  has, which help clear the standard-deduction bar. */
+  readonly otherItemizedAnnual: Cents;
   /** Annual PMI as a percentage of the original loan, charged while the
    *  balance sits above 80% of the original price (i.e. when the down
    *  payment was under 20%). 0 disables it. */
   readonly pmiRatePct: number;
+}
+
+/** The federal cap on deductible state and local taxes (property + income),
+ *  in cents. The single biggest reason the mortgage deduction is worth far
+ *  less than folk wisdom assumes. */
+export const SALT_CAP: Cents = 1_000_000;
+
+/**
+ * The honest monthly value of the mortgage-interest + SALT deduction: the
+ * marginal rate applied only to the amount by which itemizing *beats* the
+ * standard deduction. Property tax and other state/local taxes are capped at
+ * the SALT limit first. Interest is annualized from the month (a fine
+ * approximation as it declines slowly within a year). Returns 0 — as it
+ * usually should post-2018 — whenever the standard deduction already wins.
+ */
+export function monthlyTaxBenefit(
+  inputs: Inputs, monthlyInterest: Cents, monthlyPropertyTax: Cents,
+): Cents {
+  if (inputs.marginalTaxRatePct <= 0) return 0;
+  const saltDeductible = Math.min(SALT_CAP, monthlyPropertyTax * 12 + inputs.otherSaltAnnual);
+  const itemizable = monthlyInterest * 12 + saltDeductible + inputs.otherItemizedAnnual;
+  const excess = Math.max(0, itemizable - inputs.standardDeduction);
+  return roundToCents((inputs.marginalTaxRatePct / 100) * (excess / 100) / 12);
 }
 
 export interface MonthPoint {
@@ -148,9 +181,7 @@ export function project(inputs: Inputs, horizonMonths: number): Projection {
     const maintenance = roundToCents((homeValue / 100) * (inputs.maintenancePct / 100) / 12);
     const insurance = roundToCents((inputs.homeInsuranceAnnual / 100) * inflFactor / 12);
     const hoa = roundToCents((inputs.hoaMonthly / 100) * inflFactor);
-    const taxBenefit = roundToCents(
-      (inputs.marginalTaxRatePct / 100) * ((interest + propertyTax) / 100),
-    );
+    const taxBenefit = monthlyTaxBenefit(inputs, interest, propertyTax);
 
     const pmi = balance > pmiThreshold ? pmiMonthlyAmount : 0;
     const buyerOutlay = mortgagePay + propertyTax + maintenance + insurance + hoa + pmi - taxBenefit;
