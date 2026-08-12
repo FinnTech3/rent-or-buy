@@ -118,9 +118,11 @@ scenario panel on the left, and on the right the verdict, the **honest range
 bar**, a **net-worth chart** where the buyer and renter curves cross at
 break-even, and a **tornado** ranking which assumption the answer is hostage
 to. Every input recomputes everything live (a full sensitivity sweep is 27
-cheap projections). Light by default, dark via `prefers-color-scheme`, no
-external fonts or network calls — the engine runs entirely in the browser, so
-it deploys as static files with no backend.
+cheap projections). The whole scenario lives in the URL, so any result is a
+shareable link — tweak the inputs, copy the link, send someone your exact
+case. Light by default, dark via `prefers-color-scheme`, no external fonts or
+network calls — the engine runs entirely in the browser, so it deploys as
+static files with no backend.
 
 `src/app/App.tsx` is presentation only; it holds no financial logic, calling
 the engine surface:

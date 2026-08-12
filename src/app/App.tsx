@@ -8,9 +8,12 @@
  * deliberate contrast to orderbook-live's trading-terminal density: warm
  * paper, a serif display voice, one accent, honest charts.
  */
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { ReactNode } from "react";
 
+import { DEFAULTS } from "./form.js";
+import type { FormState } from "./form.js";
+import { decode, encode } from "./urlState.js";
 import { dollarsToCents, formatUSD, formatUSD0 } from "../lib/money.js";
 import type { Cents } from "../lib/money.js";
 import { monthlyPayment } from "../lib/mortgage.js";
@@ -20,50 +23,6 @@ import { analyse, verdict } from "../lib/sensitivity.js";
 import type { Sensitivity, Verdict } from "../lib/sensitivity.js";
 
 // ─────────────────────────── input state ──────────────────────────────────
-
-interface FormState {
-  homePrice: string;
-  downPaymentPct: number;
-  mortgageRatePct: number;
-  termYears: number;
-  closingCostsBuyPct: number;
-  sellingCostsPct: number;
-  propertyTaxPct: number;
-  homeInsuranceAnnual: string;
-  maintenancePct: number;
-  hoaMonthly: string;
-  homeAppreciationPct: number;
-  monthlyRent: string;
-  rentGrowthPct: number;
-  rentersInsuranceMonthly: string;
-  investmentReturnPct: number;
-  inflationPct: number;
-  marginalTaxRatePct: number;
-  pmiRatePct: number;
-  horizonYears: number;
-}
-
-const DEFAULTS: FormState = {
-  homePrice: "400000",
-  downPaymentPct: 20,
-  mortgageRatePct: 6.5,
-  termYears: 30,
-  closingCostsBuyPct: 3,
-  sellingCostsPct: 6,
-  propertyTaxPct: 1.1,
-  homeInsuranceAnnual: "1800",
-  maintenancePct: 1,
-  hoaMonthly: "0",
-  homeAppreciationPct: 3.5,
-  monthlyRent: "2200",
-  rentGrowthPct: 3,
-  rentersInsuranceMonthly: "15",
-  investmentReturnPct: 6,
-  inflationPct: 2.5,
-  marginalTaxRatePct: 0,
-  pmiRatePct: 0.5,
-  horizonYears: 10,
-};
 
 function centsOr(value: string, fallback: number): Cents {
   try {
@@ -120,9 +79,18 @@ function signed(cents: Cents): string {
 // ─────────────────────────────── app ──────────────────────────────────────
 
 export function App(): JSX.Element {
-  const [form, setForm] = useState<FormState>(DEFAULTS);
+  const [form, setForm] = useState<FormState>(() =>
+    typeof window === "undefined" ? DEFAULTS : decode(window.location.hash),
+  );
   const set = <K extends keyof FormState>(key: K, value: FormState[K]): void =>
     setForm((f) => ({ ...f, [key]: value }));
+
+  // Keep the URL in step with the scenario so any state is a shareable link.
+  // replaceState rather than push so tweaking a slider doesn't spam history.
+  useEffect(() => {
+    const q = encode(form);
+    window.history.replaceState(null, "", `${window.location.pathname}${window.location.search}#${q}`);
+  }, [form]);
 
   const { inputs, horizonMonths } = useMemo(() => buildInputs(form), [form]);
   const proj = useMemo(() => project(inputs, horizonMonths), [inputs, horizonMonths]);
@@ -145,7 +113,13 @@ export function App(): JSX.Element {
       <div className="rb-page">
         <div className="rb-shell">
           <header className="rb-header">
-            <h1 className="rb-wordmark">rent&nbsp;or&nbsp;buy</h1>
+            <div className="rb-header-top">
+              <h1 className="rb-wordmark">rent&nbsp;or&nbsp;buy</h1>
+              <div className="rb-header-actions">
+                <CopyLink />
+                <button className="rb-ghost-btn" onClick={() => setForm(DEFAULTS)}>Reset</button>
+              </div>
+            </div>
             <p className="rb-tagline">
               The honest version. Not “is the mortgage cheaper than rent?” but
               “which leaves you wealthier when you sell — and how sure can you
@@ -225,6 +199,21 @@ function InputsPanel(props: {
           min={1} max={30} step={1} suffix="yr" note="" big />
       </Group>
     </aside>
+  );
+}
+
+function CopyLink(): JSX.Element {
+  const [copied, setCopied] = useState(false);
+  const onCopy = (): void => {
+    const url = window.location.href;
+    const done = (): void => { setCopied(true); window.setTimeout(() => setCopied(false), 1600); };
+    if (navigator.clipboard?.writeText) navigator.clipboard.writeText(url).then(done, done);
+    else done();
+  };
+  return (
+    <button className="rb-ghost-btn" onClick={onCopy}>
+      {copied ? "Link copied ✓" : "Copy link to this scenario"}
+    </button>
   );
 }
 
@@ -551,10 +540,15 @@ function Tokens(): JSX.Element {
         font-family: var(--sans); font-size: 14px; line-height: 1.5;
         font-variant-numeric: tabular-nums; -webkit-font-smoothing: antialiased; }
       .rb-shell { max-width: 1180px; margin: 0 auto; padding: 40px 24px 64px; }
-      .rb-header { max-width: 680px; margin-bottom: 28px; }
+      .rb-header { margin-bottom: 28px; }
+      .rb-header-top { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; flex-wrap: wrap; max-width: 1180px; }
+      .rb-header-actions { display: flex; gap: 8px; }
+      .rb-ghost-btn { font: inherit; font-size: 12px; color: var(--accent); background: transparent;
+        border: 1px solid var(--line-2); border-radius: 6px; padding: 5px 10px; cursor: pointer; }
+      .rb-ghost-btn:hover { border-color: var(--accent); background: var(--accent-soft); }
       .rb-wordmark { font-family: var(--serif); font-weight: 700; color: var(--ink);
         font-size: 38px; letter-spacing: -0.01em; margin: 0 0 8px; }
-      .rb-tagline { font-size: 16px; color: var(--dim); margin: 0; max-width: 56ch; }
+      .rb-tagline { font-size: 16px; color: var(--dim); margin: 8px 0 0; max-width: 56ch; }
 
       .rb-grid { display: grid; grid-template-columns: 340px minmax(0, 1fr); gap: 28px; align-items: start; }
       @media (max-width: 900px) { .rb-grid { grid-template-columns: minmax(0,1fr); } }
