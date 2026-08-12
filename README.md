@@ -107,10 +107,19 @@ An honest tool is honest about its edges. This model, in its current form:
 Each of these is a place the answer could move, and naming them is the point
 rather than burying them.
 
-## Where the UI lives
+## The calculator
 
-The interface is being designed separately; this README will link the live
-calculator when it goes up. The engine surface it will call:
+`npm run dev` runs the interface locally; it's one editorial screen — a
+scenario panel on the left, and on the right the verdict, the **honest range
+bar**, a **net-worth chart** where the buyer and renter curves cross at
+break-even, and a **tornado** ranking which assumption the answer is hostage
+to. Every input recomputes everything live (a full sensitivity sweep is 27
+cheap projections). Light by default, dark via `prefers-color-scheme`, no
+external fonts or network calls — the engine runs entirely in the browser, so
+it deploys as static files with no backend.
+
+`src/app/App.tsx` is presentation only; it holds no financial logic, calling
+the engine surface:
 
 ```ts
 import { project, terminal } from "./lib/model";
