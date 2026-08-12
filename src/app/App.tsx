@@ -21,6 +21,8 @@ import { project, terminal } from "../lib/model.js";
 import type { Inputs, MonthPoint } from "../lib/model.js";
 import { analyse, verdict } from "../lib/sensitivity.js";
 import type { Sensitivity, Verdict } from "../lib/sensitivity.js";
+import { simulate } from "../lib/montecarlo.js";
+import type { MonteCarloResult } from "../lib/montecarlo.js";
 
 // ─────────────────────────── formatting ───────────────────────────────────
 
@@ -56,6 +58,7 @@ export function App(): JSX.Element {
   const { inputs, horizonMonths } = useMemo(() => buildInputs(form), [form]);
   const proj = useMemo(() => project(inputs, horizonMonths), [inputs, horizonMonths]);
   const sens = useMemo(() => analyse(inputs, horizonMonths), [inputs, horizonMonths]);
+  const mc = useMemo(() => simulate(inputs, horizonMonths, { trials: 800 }), [inputs, horizonMonths]);
   const end = terminal(proj);
   const call = verdict(sens);
 
@@ -94,7 +97,7 @@ export function App(): JSX.Element {
             <main className="rb-answer">
               <PresetRow current={form} onPick={setForm} />
               <VerdictBlock call={call} sens={sens} end={end} horizonYears={form.horizonYears} />
-              <RangeBar sens={sens} />
+              <RangeBar sens={sens} mc={mc} />
               <BreakEvenChart proj={proj} horizonMonths={horizonMonths} />
               <Tornado sens={sens} />
               <Disclosures />
@@ -311,7 +314,7 @@ function Stat({ label, value, note, color }: { label: string; value: string; not
 
 // ─────────────────────────────── range bar ────────────────────────────────
 
-function RangeBar({ sens }: { sens: Sensitivity }): JSX.Element {
+function RangeBar({ sens, mc }: { sens: Sensitivity; mc: MonteCarloResult }): JSX.Element {
   const W = 100;
   const lo = Math.min(sens.worst, 0);
   const hi = Math.max(sens.best, 0);
@@ -354,6 +357,12 @@ function RangeBar({ sens }: { sens: Sensitivity }): JSX.Element {
           <span className="rb-range-best">{signed(sens.best)}<em>best</em></span>
         </div>
       </div>
+      <p className="rb-mc">
+        Across <b>{mc.trials.toLocaleString("en-US")}</b> simulated futures,
+        buying wins <b style={{ color: mc.pBuyWins >= 0.5 ? "var(--buy)" : "var(--rent)" }}>{Math.round(mc.pBuyWins * 100)}%</b> of
+        the time. Median outcome {signed(mc.median)}; the middle 80% span{" "}
+        {signed(mc.p10)} to {signed(mc.p90)}.
+      </p>
     </section>
   );
 }
@@ -597,6 +606,8 @@ function Tokens(): JSX.Element {
       .rb-range-worst { position: absolute; left: 0; color: var(--rent); }
       .rb-range-best { position: absolute; right: 0; text-align: right; color: var(--buy); }
       .rb-range-base { position: absolute; transform: translateX(-50%); text-align: center; color: var(--accent); }
+      .rb-mc { font-size: 13px; color: var(--text); margin: 16px 0 0; padding-top: 14px; border-top: 1px solid var(--line); }
+      .rb-mc b { color: var(--ink); }
 
       /* chart */
       .rb-chart-svg { width: 100%; height: auto; display: block; }
