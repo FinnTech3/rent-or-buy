@@ -57,13 +57,13 @@ guessing at. Showing that is the entire point.
   and the middle-80% dollar span; a test pins the path engine to the
   deterministic model at zero volatility.
 - `src/cli/analyze.ts` — the headless report above. `npm run analyze [years]`.
-- 73 tests, including the economics moving the right way in every direction.
+- 75 tests, including the economics moving the right way in every direction.
 
 ## Running
 
 ```
 npm install
-npm test              # 73 tests, all green
+npm test              # 75 tests, all green
 npm run analyze 10    # the report, for a 10-year horizon
 ```
 
