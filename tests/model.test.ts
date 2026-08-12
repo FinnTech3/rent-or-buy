@@ -21,6 +21,7 @@ const BASE: Inputs = {
   investmentReturnPct: 6,
   inflationPct: 2.5,
   marginalTaxRatePct: 0,
+  pmiRatePct: 0.5,
 };
 
 const at = (i: Partial<Inputs>, years = 10) =>
@@ -90,6 +91,15 @@ describe("project — economics move the right way", () => {
 
   it("the tax deduction, when modeled, helps buying", () => {
     expect(at({ marginalTaxRatePct: 32 })).toBeGreaterThan(at({ marginalTaxRatePct: 0 }));
+  });
+
+  it("PMI hurts buying, and only with under-20% down", () => {
+    // A 10%-down buyer pays PMI; charging it can only make buying worse.
+    const lowDown = { downPayment: dollarsToCents("40000") };
+    expect(at({ ...lowDown, pmiRatePct: 1 })).toBeLessThan(at({ ...lowDown, pmiRatePct: 0 }));
+    // A 20%-down buyer is above the line, so PMI never applies and the rate
+    // is irrelevant.
+    expect(at({ pmiRatePct: 1 })).toBe(at({ pmiRatePct: 0 }));
   });
 
   it("once ahead, a longer horizon widens buying's lead", () => {

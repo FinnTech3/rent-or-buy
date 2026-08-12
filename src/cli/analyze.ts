@@ -30,6 +30,7 @@ const SCENARIO: Inputs = {
   investmentReturnPct: 6,
   inflationPct: 2.5,
   marginalTaxRatePct: 0,
+  pmiRatePct: 0.5,
 };
 
 const YEARS = Number(process.argv[2] ?? 10);

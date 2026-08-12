@@ -65,6 +65,10 @@ export interface Inputs {
   /** Marginal rate for the optional mortgage-interest + property-tax
    *  deduction. 0 models no deduction. */
   readonly marginalTaxRatePct: number;
+  /** Annual PMI as a percentage of the original loan, charged while the
+   *  balance sits above 80% of the original price (i.e. when the down
+   *  payment was under 20%). 0 disables it. */
+  readonly pmiRatePct: number;
 }
 
 export interface MonthPoint {
@@ -111,6 +115,14 @@ export function project(inputs: Inputs, horizonMonths: number): Projection {
   const investMonthly = annualToMonthly(inputs.investmentReturnPct);
   const homePriceDollars = inputs.homePrice / 100;
 
+  // PMI is charged monthly on the original loan while the balance is above
+  // 80% of the original price — i.e. only when the down payment was under
+  // 20%, and only until amortization (or a lump payment) crosses that line.
+  const pmiThreshold = roundToCents(homePriceDollars * 0.8);
+  const pmiMonthlyAmount = loan > 0
+    ? roundToCents((loan / 100) * (inputs.pmiRatePct / 100) / 12)
+    : 0;
+
   // The renter invests, from day one, exactly the cash the buyer sinks and
   // cannot get back: the down payment plus the buyer's closing costs.
   let renterInv: Cents = inputs.downPayment + inputs.closingCostsBuy;
@@ -140,7 +152,8 @@ export function project(inputs: Inputs, horizonMonths: number): Projection {
       (inputs.marginalTaxRatePct / 100) * ((interest + propertyTax) / 100),
     );
 
-    const buyerOutlay = mortgagePay + propertyTax + maintenance + insurance + hoa - taxBenefit;
+    const pmi = balance > pmiThreshold ? pmiMonthlyAmount : 0;
+    const buyerOutlay = mortgagePay + propertyTax + maintenance + insurance + hoa + pmi - taxBenefit;
 
     const rent = roundToCents((inputs.monthlyRent / 100) * rentFactor);
     const rentersIns = roundToCents((inputs.rentersInsuranceMonthly / 100) * inflFactor);

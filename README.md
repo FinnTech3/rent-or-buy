@@ -89,10 +89,6 @@ integer tick grid, ported for the same reason.
 
 An honest tool is honest about its edges. This model, in its current form:
 
-- **Ignores PMI.** Put less than 20% down and a real lender adds private
-  mortgage insurance until you cross 20% equity; the base scenario uses 20%
-  down where it doesn't apply, and low-down-payment runs will flatter buying
-  until this lands.
 - **Models the tax deduction simply, and off by default.** The optional
   marginal-rate deduction on mortgage interest + property tax ignores the
   SALT cap and the standard-deduction crossover — the two things that make
