@@ -11,55 +11,16 @@
 import { useEffect, useMemo, useState } from "react";
 import type { ReactNode } from "react";
 
-import { DEFAULTS } from "./form.js";
+import { DEFAULTS, PRESETS, buildInputs } from "./form.js";
 import type { FormState } from "./form.js";
 import { decode, encode } from "./urlState.js";
-import { dollarsToCents, formatUSD, formatUSD0 } from "../lib/money.js";
+import { formatUSD, formatUSD0 } from "../lib/money.js";
 import type { Cents } from "../lib/money.js";
 import { monthlyPayment } from "../lib/mortgage.js";
 import { project, terminal } from "../lib/model.js";
 import type { Inputs, MonthPoint } from "../lib/model.js";
 import { analyse, verdict } from "../lib/sensitivity.js";
 import type { Sensitivity, Verdict } from "../lib/sensitivity.js";
-
-// ─────────────────────────── input state ──────────────────────────────────
-
-function centsOr(value: string, fallback: number): Cents {
-  try {
-    return dollarsToCents(value.trim() === "" ? String(fallback) : value);
-  } catch {
-    return fallback * 100;
-  }
-}
-
-function buildInputs(f: FormState): { inputs: Inputs; horizonMonths: number } {
-  const homePrice = centsOr(f.homePrice, 0);
-  const downPayment = Math.round(homePrice * (f.downPaymentPct / 100));
-  const closingCostsBuy = Math.round(homePrice * (f.closingCostsBuyPct / 100));
-  return {
-    horizonMonths: Math.max(1, Math.round(f.horizonYears * 12)),
-    inputs: {
-      homePrice,
-      downPayment,
-      mortgageRatePct: f.mortgageRatePct,
-      termYears: f.termYears,
-      closingCostsBuy,
-      sellingCostsPct: f.sellingCostsPct,
-      propertyTaxPct: f.propertyTaxPct,
-      homeInsuranceAnnual: centsOr(f.homeInsuranceAnnual, 0),
-      maintenancePct: f.maintenancePct,
-      hoaMonthly: centsOr(f.hoaMonthly, 0),
-      homeAppreciationPct: f.homeAppreciationPct,
-      monthlyRent: centsOr(f.monthlyRent, 0),
-      rentGrowthPct: f.rentGrowthPct,
-      rentersInsuranceMonthly: centsOr(f.rentersInsuranceMonthly, 0),
-      investmentReturnPct: f.investmentReturnPct,
-      inflationPct: f.inflationPct,
-      marginalTaxRatePct: f.marginalTaxRatePct,
-      pmiRatePct: f.pmiRatePct,
-    },
-  };
-}
 
 // ─────────────────────────── formatting ───────────────────────────────────
 
@@ -131,6 +92,7 @@ export function App(): JSX.Element {
             <InputsPanel form={form} set={set} inputs={inputs} payment={payment} />
 
             <main className="rb-answer">
+              <PresetRow current={form} onPick={setForm} />
               <VerdictBlock call={call} sens={sens} end={end} horizonYears={form.horizonYears} />
               <RangeBar sens={sens} />
               <BreakEvenChart proj={proj} horizonMonths={horizonMonths} />
@@ -199,6 +161,26 @@ function InputsPanel(props: {
           min={1} max={30} step={1} suffix="yr" note="" big />
       </Group>
     </aside>
+  );
+}
+
+function PresetRow(props: { current: FormState; onPick: (f: FormState) => void }): JSX.Element {
+  const matches = (f: FormState): boolean => JSON.stringify(f) === JSON.stringify(props.current);
+  return (
+    <div className="rb-presets">
+      <span className="rb-presets-label">Try a scenario</span>
+      <div className="rb-presets-chips">
+        {PRESETS.map((p) => (
+          <button
+            key={p.name}
+            className={`rb-chip${matches(p.form) ? " rb-chip-on" : ""}`}
+            onClick={() => props.onPick(p.form)}
+          >
+            {p.name}
+          </button>
+        ))}
+      </div>
+    </div>
   );
 }
 
@@ -585,6 +567,13 @@ function Tokens(): JSX.Element {
 
       /* answer */
       .rb-answer { display: flex; flex-direction: column; gap: 18px; min-width: 0; }
+      .rb-presets { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+      .rb-presets-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--dim); }
+      .rb-presets-chips { display: flex; gap: 8px; flex-wrap: wrap; }
+      .rb-chip { font: inherit; font-size: 12px; color: var(--text); background: var(--panel);
+        border: 1px solid var(--line-2); border-radius: 999px; padding: 5px 12px; cursor: pointer; }
+      .rb-chip:hover { border-color: var(--accent); color: var(--ink); }
+      .rb-chip-on { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); font-weight: 600; }
       .rb-card { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 20px; }
       .rb-card-title { font-family: var(--serif); font-size: 18px; color: var(--ink); margin: 0 0 4px; font-weight: 600; }
       .rb-card-sub { font-size: 13px; color: var(--dim); margin: 0 0 16px; max-width: 62ch; }

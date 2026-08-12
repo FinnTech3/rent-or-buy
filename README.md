@@ -124,6 +124,11 @@ case. Light by default, dark via `prefers-color-scheme`, no external fonts or
 network calls — the engine runs entirely in the browser, so it deploys as
 static files with no backend.
 
+One-click **example scenarios** (a high-cost metro, a low-rate era, a 10%-down
+starter, a case where renting clearly wins) sit above the answer — they exist
+to make the point that the verdict flips with the situation rather than
+pointing one way forever.
+
 `src/app/App.tsx` is presentation only; it holds no financial logic, calling
 the engine surface:
 
