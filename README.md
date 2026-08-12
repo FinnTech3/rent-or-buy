@@ -12,6 +12,10 @@ nobody can forecast. So this one refuses to hand you a single number. It
 hands you a range, a break-even year, and a ranking of which assumption your
 answer is hostage to.
 
+**Live calculator:** https://finntech3.github.io/rent-or-buy/
+
+![The calculator: verdict, honest range, and the net-worth curves crossing at break-even](docs/screenshots/calculator-light.png)
+
 ```
 $ npm run analyze 10
 
