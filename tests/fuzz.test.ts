@@ -52,6 +52,11 @@ function randomScenario(): { inputs: Inputs; horizonMonths: number } {
 const isInt = (n: number): boolean => Number.isInteger(n);
 
 describe("engine invariants over random scenarios", () => {
+  // 300 scenarios × up to 360 months is a lot of inner iterations; checking the
+  // invariants with plain comparisons and only reaching for `expect` when one is
+  // actually violated keeps full coverage without paying the matcher's overhead
+  // hundreds of thousands of times. The explicit timeout is a safety net for
+  // slower CI machines.
   it("holds across 300 fuzzed scenarios", () => {
     for (let trial = 0; trial < 300; trial++) {
       const { inputs, horizonMonths } = randomScenario();
@@ -60,18 +65,21 @@ describe("engine invariants over random scenarios", () => {
 
       let prevBalance = Infinity;
       for (const m of proj.months) {
-        // Money is always finite integer cents.
-        expect(isInt(m.buyerNetWorth) && isInt(m.renterNetWorth)).toBe(true);
-        expect(isInt(m.loanBalance) && isInt(m.homeValue)).toBe(true);
-        expect(Number.isFinite(m.difference)).toBe(true);
-        // A home never becomes worthless or negative here.
-        expect(m.homeValue).toBeGreaterThan(0);
-        // The loan only ever shrinks, and never below zero.
-        expect(m.loanBalance).toBeGreaterThanOrEqual(0);
-        expect(m.loanBalance).toBeLessThanOrEqual(prevBalance + 1);
+        const ok =
+          // Money is always finite integer cents.
+          isInt(m.buyerNetWorth) && isInt(m.renterNetWorth) &&
+          isInt(m.loanBalance) && isInt(m.homeValue) &&
+          Number.isFinite(m.difference) &&
+          // A home never becomes worthless or negative here.
+          m.homeValue > 0 &&
+          // The loan only ever shrinks, and never below zero.
+          m.loanBalance >= 0 &&
+          m.loanBalance <= prevBalance + 1 &&
+          // The difference is exactly buyer minus renter.
+          m.difference === m.buyerNetWorth - m.renterNetWorth;
+        // Only materialise a matcher (and a readable diff) on an actual break.
+        if (!ok) expect({ trial, ...m }).toBe("invariant held");
         prevBalance = m.loanBalance;
-        // The difference is exactly buyer minus renter.
-        expect(m.difference).toBe(m.buyerNetWorth - m.renterNetWorth);
       }
 
       // Break-even, if reported, is a real month in range.
@@ -80,7 +88,7 @@ describe("engine invariants over random scenarios", () => {
         expect(proj.breakEvenMonth).toBeLessThanOrEqual(horizonMonths);
       }
     }
-  });
+  }, 20_000);
 
   it("sensitivity and Monte Carlo stay well-formed on fuzzed inputs", () => {
     for (let trial = 0; trial < 60; trial++) {
