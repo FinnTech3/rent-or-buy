@@ -11,11 +11,17 @@
 import { useEffect, useMemo, useState } from "react";
 import type { ReactNode } from "react";
 
-import { DEFAULTS, PRESETS, STANDARD_DEDUCTION, buildInputs } from "./form.js";
-import type { FormState } from "./form.js";
+import {
+  DEFAULTS, PRESETS, STANDARD_DEDUCTION, buildInputs, currencyOf,
+  ukDefaults, ukProfileForm, rederiveForLocation,
+} from "./form.js";
+import type { FormState, Region } from "./form.js";
 import { decode, encode } from "./urlState.js";
-import { dollarsToCents, formatUSD, formatUSD0 } from "../lib/money.js";
-import type { Cents } from "../lib/money.js";
+import { dollarsToCents, formatMoney, formatMoney0, currencySymbol } from "../lib/money.js";
+import type { Cents, Currency } from "../lib/money.js";
+import { PROFILES, resolveProfile } from "../lib/ukData.js";
+import type { UkLocation } from "../lib/ukData.js";
+import { stampDuty } from "../lib/sdlt.js";
 import { monthlyPayment } from "../lib/mortgage.js";
 import { project, terminal } from "../lib/model.js";
 import type { Inputs, MonthPoint } from "../lib/model.js";
@@ -26,17 +32,27 @@ import type { MonteCarloResult } from "../lib/montecarlo.js";
 
 // ─────────────────────────── formatting ───────────────────────────────────
 
+// The active currency for the current render. Set once at the top of App()
+// before the subtree renders, so every formatter below reads the right symbol
+// without threading a prop through a dozen components. Safe here because there
+// is a single App instance rendered synchronously.
+let CUR: Currency = "USD";
+
+const money = (c: Cents): string => formatMoney(c, CUR);
+const money0 = (c: Cents): string => formatMoney0(c, CUR);
+
 function fmtCompact(cents: Cents): string {
   const d = cents / 100;
   const a = Math.abs(d);
   const s = d < 0 ? "−" : "";
-  if (a >= 1e6) return `${s}$${(a / 1e6).toFixed(a >= 1e7 ? 0 : 1)}M`;
-  if (a >= 1e3) return `${s}$${(a / 1e3).toFixed(0)}k`;
-  return `${s}$${a.toFixed(0)}`;
+  const sym = currencySymbol(CUR);
+  if (a >= 1e6) return `${s}${sym}${(a / 1e6).toFixed(a >= 1e7 ? 0 : 1)}M`;
+  if (a >= 1e3) return `${s}${sym}${(a / 1e3).toFixed(0)}k`;
+  return `${s}${sym}${a.toFixed(0)}`;
 }
 
 function signed(cents: Cents): string {
-  return `${cents >= 0 ? "+" : "−"}${formatUSD0(Math.abs(cents))}`;
+  return `${cents >= 0 ? "+" : "−"}${money0(Math.abs(cents))}`;
 }
 
 // ─────────────────────────────── app ──────────────────────────────────────
@@ -71,6 +87,12 @@ export function App(): JSX.Element {
     [inputs],
   );
 
+  // Set the render-wide currency before the subtree formats any money.
+  CUR = currencyOf(form.region);
+
+  const switchRegion = (region: Region): void =>
+    setForm(region === "UK" ? ukDefaults() : DEFAULTS);
+
   return (
     <>
       <Tokens />
@@ -80,14 +102,17 @@ export function App(): JSX.Element {
             <div className="rb-header-top">
               <h1 className="rb-wordmark">rent&nbsp;or&nbsp;buy</h1>
               <div className="rb-header-actions">
+                <RegionSwitch region={form.region} onChange={switchRegion} />
                 <CopyLink />
-                <button className="rb-ghost-btn" onClick={() => setForm(DEFAULTS)}>Reset</button>
+                <button className="rb-ghost-btn" onClick={() => setForm(form.region === "UK" ? ukDefaults(form.ukLocation) : DEFAULTS)}>Reset</button>
               </div>
             </div>
             <p className="rb-tagline">
               The honest version. Not “is the mortgage cheaper than rent?” but
               “which leaves you wealthier when you sell — and how sure can you
-              be?”
+              be?”{form.region === "UK"
+                ? " UK mode: stamp duty, council tax, no mortgage-interest relief — the real cost of buying here."
+                : ""}
             </p>
           </header>
 
@@ -100,7 +125,7 @@ export function App(): JSX.Element {
               <RangeBar sens={sens} mc={mc} />
               <BreakEvenChart proj={proj} horizonMonths={horizonMonths} />
               <Tornado sens={sens} />
-              <Disclosures />
+              <Disclosures region={form.region} />
             </main>
           </div>
 
@@ -123,28 +148,41 @@ function InputsPanel(props: {
   payment: Cents;
 }): JSX.Element {
   const { form, set } = props;
+  const uk = form.region === "UK";
   const downPayment = Math.round(props.inputs.homePrice * (form.downPaymentPct / 100));
+  const sdlt = stampDuty(props.inputs.homePrice);
 
   return (
     <aside className="rb-inputs">
       <Group title="The home">
         <MoneyField label="Home price" value={form.homePrice} onChange={(v) => set("homePrice", v)} />
         <SliderField label="Down payment" value={form.downPaymentPct} onChange={(v) => set("downPaymentPct", v)}
-          min={0} max={50} step={1} suffix="%" note={formatUSD0(downPayment)} />
+          min={0} max={50} step={1} suffix="%" note={money0(downPayment)} />
         <NumberField label="Mortgage rate" value={form.mortgageRatePct} onChange={(v) => set("mortgageRatePct", v)} step={0.125} suffix="%" />
         <NumberField label="Loan term" value={form.termYears} onChange={(v) => set("termYears", v)} step={5} suffix="yr" />
-        <div className="rb-payline">Monthly principal &amp; interest: <b>{formatUSD(props.payment)}</b></div>
+        <div className="rb-payline">Monthly principal &amp; interest: <b>{money(props.payment)}</b></div>
       </Group>
 
-      <Group title="Owning costs">
-        <NumberField label="Closing costs (buy)" value={form.closingCostsBuyPct} onChange={(v) => set("closingCostsBuyPct", v)} step={0.5} suffix="%" />
-        <NumberField label="Selling costs" value={form.sellingCostsPct} onChange={(v) => set("sellingCostsPct", v)} step={0.5} suffix="%" />
-        <NumberField label="Property tax / yr" value={form.propertyTaxPct} onChange={(v) => set("propertyTaxPct", v)} step={0.1} suffix="%" />
-        <NumberField label="Maintenance / yr" value={form.maintenancePct} onChange={(v) => set("maintenancePct", v)} step={0.25} suffix="%" />
-        <MoneyField label="Home insurance / yr" value={form.homeInsuranceAnnual} onChange={(v) => set("homeInsuranceAnnual", v)} />
-        <MoneyField label="HOA / mo" value={form.hoaMonthly} onChange={(v) => set("hoaMonthly", v)} />
-        <NumberField label="PMI / yr (under 20% down)" value={form.pmiRatePct} onChange={(v) => set("pmiRatePct", v)} step={0.1} suffix="%" />
-      </Group>
+      {uk ? (
+        <Group title="Owning costs">
+          <div className="rb-payline">Stamp duty (SDLT) on purchase: <b>{money0(sdlt)}</b> <span className="rb-slider-note">+ £2,000 legal · sunk on day one</span></div>
+          <NumberField label="Selling costs" value={form.sellingCostsPct} onChange={(v) => set("sellingCostsPct", v)} step={0.5} suffix="%" />
+          <MoneyField label="Council tax / yr" value={form.councilTaxAnnual} onChange={(v) => set("councilTaxAnnual", v)} />
+          <NumberField label="Maintenance / yr" value={form.maintenancePct} onChange={(v) => set("maintenancePct", v)} step={0.25} suffix="%" />
+          <MoneyField label="Buildings insurance / yr" value={form.homeInsuranceAnnual} onChange={(v) => set("homeInsuranceAnnual", v)} />
+          <MoneyField label="Service charge / mo (leasehold)" value={form.hoaMonthly} onChange={(v) => set("hoaMonthly", v)} />
+        </Group>
+      ) : (
+        <Group title="Owning costs">
+          <NumberField label="Closing costs (buy)" value={form.closingCostsBuyPct} onChange={(v) => set("closingCostsBuyPct", v)} step={0.5} suffix="%" />
+          <NumberField label="Selling costs" value={form.sellingCostsPct} onChange={(v) => set("sellingCostsPct", v)} step={0.5} suffix="%" />
+          <NumberField label="Property tax / yr" value={form.propertyTaxPct} onChange={(v) => set("propertyTaxPct", v)} step={0.1} suffix="%" />
+          <NumberField label="Maintenance / yr" value={form.maintenancePct} onChange={(v) => set("maintenancePct", v)} step={0.25} suffix="%" />
+          <MoneyField label="Home insurance / yr" value={form.homeInsuranceAnnual} onChange={(v) => set("homeInsuranceAnnual", v)} />
+          <MoneyField label="HOA / mo" value={form.hoaMonthly} onChange={(v) => set("hoaMonthly", v)} />
+          <NumberField label="PMI / yr (under 20% down)" value={form.pmiRatePct} onChange={(v) => set("pmiRatePct", v)} step={0.1} suffix="%" />
+        </Group>
+      )}
 
       <Group title="Renting">
         <MoneyField label="Rent / mo" value={form.monthlyRent} onChange={(v) => set("monthlyRent", v)} />
@@ -158,12 +196,14 @@ function InputsPanel(props: {
         <NumberField label="Inflation / yr" value={form.inflationPct} onChange={(v) => set("inflationPct", v)} step={0.25} suffix="%" />
       </Group>
 
-      <Group title="Taxes (optional — usually a wash)">
-        <FilingField value={form.filingStatus} onChange={(v) => set("filingStatus", v)} />
-        <NumberField label="Marginal tax rate" value={form.marginalTaxRatePct} onChange={(v) => set("marginalTaxRatePct", v)} step={1} suffix="%" />
-        <MoneyField label="State/local tax / yr" value={form.stateLocalTaxAnnual} onChange={(v) => set("stateLocalTaxAnnual", v)} />
-        <MoneyField label="Other itemized / yr" value={form.otherItemizedAnnual} onChange={(v) => set("otherItemizedAnnual", v)} />
-      </Group>
+      {uk ? null : (
+        <Group title="Taxes (optional — usually a wash)">
+          <FilingField value={form.filingStatus} onChange={(v) => set("filingStatus", v)} />
+          <NumberField label="Marginal tax rate" value={form.marginalTaxRatePct} onChange={(v) => set("marginalTaxRatePct", v)} step={1} suffix="%" />
+          <MoneyField label="State/local tax / yr" value={form.stateLocalTaxAnnual} onChange={(v) => set("stateLocalTaxAnnual", v)} />
+          <MoneyField label="Other itemized / yr" value={form.otherItemizedAnnual} onChange={(v) => set("otherItemizedAnnual", v)} />
+        </Group>
+      )}
 
       <Group title="Horizon">
         <SliderField label="Years until you'd sell" value={form.horizonYears} onChange={(v) => set("horizonYears", v)}
@@ -173,7 +213,23 @@ function InputsPanel(props: {
   );
 }
 
+function RegionSwitch(props: { region: Region; onChange: (r: Region) => void }): JSX.Element {
+  const regions: { id: Region; label: string }[] = [
+    { id: "US", label: "🇺🇸 US" },
+    { id: "UK", label: "🇬🇧 UK" },
+  ];
+  return (
+    <span className="rb-filing" role="group" aria-label="Country">
+      {regions.map((r) => (
+        <button key={r.id} className={`rb-seg${props.region === r.id ? " rb-seg-on" : ""}`}
+          onClick={() => props.onChange(r.id)}>{r.label}</button>
+      ))}
+    </span>
+  );
+}
+
 function PresetRow(props: { current: FormState; onPick: (f: FormState) => void }): JSX.Element {
+  if (props.current.region === "UK") return <UkPresetRow current={props.current} onPick={props.onPick} />;
   const matches = (f: FormState): boolean => JSON.stringify(f) === JSON.stringify(props.current);
   return (
     <div className="rb-presets">
@@ -189,6 +245,49 @@ function PresetRow(props: { current: FormState; onPick: (f: FormState) => void }
           </button>
         ))}
       </div>
+    </div>
+  );
+}
+
+/** The UK example profiles: a London/Winchester toggle plus the six persona
+ *  price points, each loading a real, sourced scenario. */
+function UkPresetRow(props: { current: FormState; onPick: (f: FormState) => void }): JSX.Element {
+  const { current } = props;
+  const activePrice = Number(current.homePrice);
+  const cities: UkLocation[] = ["London", "Winchester"];
+  return (
+    <div className="rb-uk-presets">
+      <div className="rb-presets">
+        <span className="rb-presets-label">Example profiles · real UK data</span>
+        <span className="rb-filing" role="group" aria-label="City">
+          {cities.map((c) => (
+            <button key={c} className={`rb-seg${current.ukLocation === c ? " rb-seg-on" : ""}`}
+              onClick={() => props.onPick(rederiveForLocation(current, c))}>{c}</button>
+          ))}
+        </span>
+      </div>
+      <div className="rb-presets-chips">
+        {PROFILES.map((p) => {
+          const r = resolveProfile(p, current.ukLocation);
+          return (
+            <button
+              key={p.id}
+              className={`rb-chip${activePrice === p.priceGBP ? " rb-chip-on" : ""}`}
+              title={`${p.note} · rent ≈ ${money0(r.monthlyRentGBP * 100)}/mo at a ${r.grossYieldPct}% gross yield`}
+              onClick={() => props.onPick(ukProfileForm(p, current.ukLocation))}
+            >
+              {p.persona} · {fmtCompact(p.priceGBP * 100)}
+            </button>
+          );
+        })}
+      </div>
+      <p className="rb-uk-note">
+        Rent is derived as price × gross&nbsp;yield ÷ 12 from published{" "}
+        {current.ukLocation} yields (Savills/Cluttons; PropertyInvestmentsUK for
+        Winchester), not typed in. Council tax, stamp duty and the macro
+        assumptions are labelled and editable — the inflation rate is a
+        placeholder set to the 2% BoE target.
+      </p>
     </div>
   );
 }
@@ -223,7 +322,7 @@ function FilingField(props: {
         >{s}</button>
       ))}
     </span>,
-    `standard deduction ${formatUSD0(dollarsToCents(String(STANDARD_DEDUCTION[props.value])))}`,
+    `standard deduction ${money0(dollarsToCents(String(STANDARD_DEDUCTION[props.value])))}`,
   );
 }
 
@@ -250,7 +349,7 @@ function MoneyField(props: { label: string; value: string; onChange: (v: string)
   return fieldRow(
     props.label,
     <span className="rb-money-input">
-      <span className="rb-money-sign">$</span>
+      <span className="rb-money-sign">{currencySymbol(CUR)}</span>
       <input className="rb-input" inputMode="decimal" value={props.value}
         onChange={(e) => props.onChange(e.target.value)} />
     </span>,
@@ -307,7 +406,7 @@ function VerdictBlock(props: {
   const driverLabel = DRIVER_LABEL[driver] ?? driver;
 
   const sentence = call === "toss-up"
-    ? `Over ${props.horizonYears} years, ${winner} edges ahead by ${formatUSD0(Math.abs(diff))} — but the plausible range runs from ${signed(sens.worst)} to ${signed(sens.best)}. This is close to a coin flip, and it hinges mostly on ${driverLabel}.`
+    ? `Over ${props.horizonYears} years, ${winner} edges ahead by ${money0(Math.abs(diff))} — but the plausible range runs from ${signed(sens.worst)} to ${signed(sens.best)}. This is close to a coin flip, and it hinges mostly on ${driverLabel}.`
     : `Over ${props.horizonYears} years, ${VERDICT_COPY[call].word.toLowerCase()}ing wins across every plausible assumption — from ${signed(sens.worst)} in the worst case to ${signed(sens.best)} in the best. The result is driven mostly by ${driverLabel}.`;
 
   return (
@@ -514,15 +613,26 @@ function Tornado({ sens }: { sens: Sensitivity }): JSX.Element {
 
 // ───────────────────────────── disclosures ────────────────────────────────
 
-function Disclosures(): JSX.Element {
+function Disclosures({ region }: { region: Region }): JSX.Element {
   return (
     <details className="rb-disclose">
       <summary>What this model deliberately doesn't pretend to know</summary>
       <ul>
-        <li><b>The tax deduction is simplified and off by default.</b> It ignores the SALT cap and the standard-deduction crossover — the two things that shrink the real benefit — so it won't overstate buying unless you opt in with a marginal rate.</li>
         <li><b>Fixed rate, no refinancing.</b> No ARMs and no rate path — a forecast on top of a forecast.</li>
         <li><b>Deterministic, not Monte Carlo.</b> The range comes from sweeping assumptions, not simulating market volatility, so it understates tail risk on the invested side.</li>
-        <li><b>Property tax tracks market value.</b> Places with assessment caps (California's Prop 13) would tax more slowly than this assumes.</li>
+        {region === "UK" ? (
+          <>
+            <li><b>Rent is derived from yield, not a listing.</b> Each example rent is price × gross&nbsp;yield ÷ 12 using published London/Winchester yields — a transparent estimate, not the asking price of a specific flat. Yields compress at the top, which is modelled.</li>
+            <li><b>Council tax is an area-representative band figure.</b> England's bands are frozen at 1991 values, so it barely tracks today's price; treat the default as a starting point and set your own.</li>
+            <li><b>SDLT is the standard owner-occupier rate.</b> First-time-buyer relief (only ≤£500k) and the +5% additional-property surcharge for a second home or buy-to-let aren't applied to these primary-residence profiles.</li>
+            <li><b>No mortgage-interest relief.</b> Correct for UK owner-occupiers — it was abolished — so unlike the US model there's no deduction to flatter buying.</li>
+          </>
+        ) : (
+          <>
+            <li><b>The tax deduction is simplified and off by default.</b> It ignores the SALT cap and the standard-deduction crossover — the two things that shrink the real benefit — so it won't overstate buying unless you opt in with a marginal rate.</li>
+            <li><b>Property tax tracks market value.</b> Places with assessment caps (California's Prop 13) would tax more slowly than this assumes.</li>
+          </>
+        )}
       </ul>
     </details>
   );
@@ -614,6 +724,9 @@ function Tokens(): JSX.Element {
         border: 1px solid var(--line-2); border-radius: 999px; padding: 5px 12px; cursor: pointer; }
       .rb-chip:hover { border-color: var(--accent); color: var(--ink); }
       .rb-chip-on { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); font-weight: 600; }
+      .rb-uk-presets { display: flex; flex-direction: column; gap: 10px; }
+      .rb-uk-presets .rb-presets { justify-content: space-between; }
+      .rb-uk-note { font-size: 11px; color: var(--dim-2); margin: 0; max-width: 66ch; }
       .rb-card { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 20px; }
       .rb-card-title { font-family: var(--serif); font-size: 18px; color: var(--ink); margin: 0 0 4px; font-weight: 600; }
       .rb-card-sub { font-size: 13px; color: var(--dim); margin: 0 0 16px; max-width: 62ch; }

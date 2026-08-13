@@ -57,15 +57,51 @@ guessing at. Showing that is the entire point.
   and the middle-80% dollar span; a test pins the path engine to the
   deterministic model at zero volatility.
 - `src/cli/analyze.ts` — the headless report above. `npm run analyze [years]`.
-- 75 tests, including the economics moving the right way in every direction.
+- 98 tests, including the economics moving the right way in every direction,
+  the SDLT bands checked against gov.uk, and the UK profile rents cross-checked
+  against published average rents.
 
 ## Running
 
 ```
 npm install
-npm test              # 75 tests, all green
+npm test              # 98 tests, all green
 npm run analyze 10    # the report, for a 10-year horizon
 ```
+
+## UK mode — London & Winchester, on real data
+
+The tool speaks two countries. Flip the header switch to **🇬🇧 UK** and the whole
+engine changes to match, because the honest UK answer isn't the US one in
+pounds:
+
+- **Stamp Duty (SDLT)** replaces US closing costs as the big irrecoverable cost
+  of buying — £43,750 on a £1m home, £273,750 on a £3m one, computed from the
+  gov.uk bands (`src/lib/sdlt.ts`).
+- **Council tax** — a flat banded charge — replaces US property tax as a
+  percentage of value.
+- **No mortgage-interest relief**, because UK owner-occupiers get none. Unlike
+  the US model there's simply no deduction to flatter buying.
+
+It ships with **example profiles built from real UK data**: six price points
+(£600k–£3m) across London and Winchester, six personas from first home to
+ultra-prime. Pick a city and a persona and the scenario loads. The rents aren't
+typed in — each is `price × published gross yield ÷ 12`, and the yields are
+sourced (Savills/Cluttons for London, PropertyInvestmentsUK for Winchester). The
+full audit trail, every figure and its source, is in
+[`docs/UK-DATA-SOURCES.md`](docs/UK-DATA-SOURCES.md).
+
+The regional contrast is the interesting part: the *same* £1m house rents for
+£3,500/mo in London (4.2% yield) but £2,667 in Winchester (3.2%), while
+Winchester's council tax runs higher — so the rent-vs-buy verdict genuinely
+flips between two English cities on the same budget.
+
+![The UK calculator: a £1m London family home, £43,750 stamp duty, council tax and rent from real yields](docs/screenshots/uk-london-light.png)
+
+A written [feature specification](docs/FEATURE-SPEC.md) sketches where this goes
+next — income-based personas, measuring your inflation basket from an uploaded
+bank statement, and analysing a pasted property-listing URL — with the
+data-handling limits each would carry.
 
 ## The method
 
