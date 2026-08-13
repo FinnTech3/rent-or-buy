@@ -5,9 +5,22 @@
  */
 
 import { dollarsToCents } from "../lib/money.js";
+import type { Currency } from "../lib/money.js";
 import type { Inputs } from "../lib/model.js";
+import { stampDuty } from "../lib/sdlt.js";
+import { PROFILES, UK_ASSUMPTIONS, resolveProfile } from "../lib/ukData.js";
+import type { UkLocation, UkProfile } from "../lib/ukData.js";
+
+export type Region = "US" | "UK";
 
 export interface FormState {
+  /** Which country's rules the engine applies (currency, purchase tax,
+   *  recurring property tax, mortgage-interest relief). */
+  region: Region;
+  /** UK only: which market the example profiles read rent/council tax from. */
+  ukLocation: UkLocation;
+  /** UK only: flat annual council tax (a banded charge, not a % of value). */
+  councilTaxAnnual: string;
   homePrice: string;
   downPaymentPct: number;
   mortgageRatePct: number;
@@ -40,6 +53,9 @@ export const STANDARD_DEDUCTION: Record<FormState["filingStatus"], number> = {
 };
 
 export const DEFAULTS: FormState = {
+  region: "US",
+  ukLocation: "London",
+  councilTaxAnnual: "0",
   homePrice: "400000",
   downPaymentPct: 20,
   mortgageRatePct: 6.5,
@@ -66,6 +82,9 @@ export const DEFAULTS: FormState = {
 
 /** Fields carried as strings; every other field is coerced to a number. */
 export const STRING_KEYS: ReadonlySet<keyof FormState> = new Set([
+  "region",
+  "ukLocation",
+  "councilTaxAnnual",
   "homePrice",
   "homeInsuranceAnnual",
   "hoaMonthly",
@@ -75,6 +94,11 @@ export const STRING_KEYS: ReadonlySet<keyof FormState> = new Set([
   "stateLocalTaxAnnual",
   "otherItemizedAnnual",
 ]);
+
+/** The currency the current region transacts in. */
+export function currencyOf(region: Region): Currency {
+  return region === "UK" ? "GBP" : "USD";
+}
 
 /** Convert the string/number form into the engine's integer-cents Inputs.
  *  A bad dollar string falls back rather than throwing so a half-typed field
@@ -90,7 +114,18 @@ function centsOr(value: string, fallback: number): number {
 export function buildInputs(f: FormState): { inputs: Inputs; horizonMonths: number } {
   const homePrice = centsOr(f.homePrice, 0);
   const downPayment = Math.round(homePrice * (f.downPaymentPct / 100));
-  const closingCostsBuy = Math.round(homePrice * (f.closingCostsBuyPct / 100));
+  const uk = f.region === "UK";
+
+  // The two regimes differ in exactly three places, all of them money the
+  // buyer can't get back or an ongoing charge on the home:
+  //  - purchase tax: US flat closing-cost %, UK banded Stamp Duty (+ legal);
+  //  - recurring property tax: US % of value, UK flat council tax;
+  //  - mortgage-interest relief: US itemized deduction, UK none (abolished for
+  //    owner-occupiers), so the whole SALT/standard-deduction apparatus is off.
+  const closingCostsBuy = uk
+    ? stampDuty(homePrice) + UK_ASSUMPTIONS.legalAndSurveyGBP * 100
+    : Math.round(homePrice * (f.closingCostsBuyPct / 100));
+
   return {
     horizonMonths: Math.max(1, Math.round(f.horizonYears * 12)),
     inputs: {
@@ -100,7 +135,8 @@ export function buildInputs(f: FormState): { inputs: Inputs; horizonMonths: numb
       termYears: f.termYears,
       closingCostsBuy,
       sellingCostsPct: f.sellingCostsPct,
-      propertyTaxPct: f.propertyTaxPct,
+      propertyTaxPct: uk ? 0 : f.propertyTaxPct,
+      councilTaxAnnual: uk ? centsOr(f.councilTaxAnnual, 0) : 0,
       homeInsuranceAnnual: centsOr(f.homeInsuranceAnnual, 0),
       maintenancePct: f.maintenancePct,
       hoaMonthly: centsOr(f.hoaMonthly, 0),
@@ -110,11 +146,13 @@ export function buildInputs(f: FormState): { inputs: Inputs; horizonMonths: numb
       rentersInsuranceMonthly: centsOr(f.rentersInsuranceMonthly, 0),
       investmentReturnPct: f.investmentReturnPct,
       inflationPct: f.inflationPct,
-      marginalTaxRatePct: f.marginalTaxRatePct,
+      // UK owner-occupiers get no mortgage-interest relief, so the deduction
+      // machinery is switched off entirely rather than fed UK-shaped numbers.
+      marginalTaxRatePct: uk ? 0 : f.marginalTaxRatePct,
       standardDeduction: centsOr(String(STANDARD_DEDUCTION[f.filingStatus] ?? STANDARD_DEDUCTION.married), 30000),
-      otherSaltAnnual: centsOr(f.stateLocalTaxAnnual, 0),
-      otherItemizedAnnual: centsOr(f.otherItemizedAnnual, 0),
-      pmiRatePct: f.pmiRatePct,
+      otherSaltAnnual: uk ? 0 : centsOr(f.stateLocalTaxAnnual, 0),
+      otherItemizedAnnual: uk ? 0 : centsOr(f.otherItemizedAnnual, 0),
+      pmiRatePct: uk ? 0 : f.pmiRatePct,
     },
   };
 }
@@ -175,3 +213,59 @@ export const PRESETS: readonly Preset[] = [
     },
   },
 ];
+
+// ─────────────────────────── UK example profiles ──────────────────────────
+
+/** Build a complete UK scenario from a profile and a city. Rent and council
+ *  tax come from the sourced data in ukData; the macro assumptions are the
+ *  shared UK defaults. Everything is real or a labelled assumption — nothing
+ *  is hand-typed per profile. */
+export function ukProfileForm(profile: UkProfile, location: UkLocation): FormState {
+  const r = resolveProfile(profile, location);
+  const a = UK_ASSUMPTIONS;
+  return {
+    ...DEFAULTS,
+    region: "UK",
+    ukLocation: location,
+    homePrice: String(profile.priceGBP),
+    downPaymentPct: a.downPaymentPct,
+    mortgageRatePct: a.mortgageRatePct,
+    termYears: a.termYears,
+    sellingCostsPct: a.sellingCostsPct,
+    maintenancePct: a.maintenancePct,
+    homeInsuranceAnnual: String(a.buildingsInsuranceAnnualGBP),
+    hoaMonthly: "0", // Leasehold service charge — user adds it if a flat.
+    councilTaxAnnual: String(r.councilTaxAnnualGBP),
+    homeAppreciationPct: a.homeAppreciationPct,
+    monthlyRent: String(r.monthlyRentGBP),
+    rentGrowthPct: a.rentGrowthPct,
+    rentersInsuranceMonthly: "12",
+    investmentReturnPct: a.investmentReturnPct,
+    inflationPct: a.inflationPct,
+    horizonYears: a.horizonYears,
+  };
+}
+
+/** When the city toggle flips, re-derive the rent and council tax for the same
+ *  price/profile in the new city, leaving everything the user may have edited
+ *  untouched. If the current price isn't one of the profile price points, only
+ *  the location label changes. */
+export function rederiveForLocation(f: FormState, location: UkLocation): FormState {
+  const price = Number(f.homePrice);
+  const profile = PROFILES.find((p) => p.priceGBP === price);
+  if (!profile) return { ...f, ukLocation: location };
+  const r = resolveProfile(profile, location);
+  return {
+    ...f,
+    ukLocation: location,
+    monthlyRent: String(r.monthlyRentGBP),
+    councilTaxAnnual: String(r.councilTaxAnnualGBP),
+  };
+}
+
+/** The default UK scenario when someone switches the tool to UK mode: the
+ *  family-home profile in London. */
+export function ukDefaults(location: UkLocation = "London"): FormState {
+  const family = PROFILES.find((p) => p.id === "family-home") ?? PROFILES[0]!;
+  return ukProfileForm(family, location);
+}
