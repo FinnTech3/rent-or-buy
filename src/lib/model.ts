@@ -48,6 +48,11 @@ export interface Inputs {
   readonly propertyTaxPct: number;
   /** First-year homeowner's insurance; grows with inflation. */
   readonly homeInsuranceAnnual: Cents;
+  /** UK council tax: a flat annual charge (by property band, not a % of
+   *  value), growing with inflation. 0 or omitted for the US model, which
+   *  uses propertyTaxPct instead. The two are alternatives — a property is
+   *  taxed one way or the other, never both. */
+  readonly councilTaxAnnual?: Cents;
   /** Annual maintenance as a percentage of current home value. */
   readonly maintenancePct: number;
   /** First-year monthly HOA; grows with inflation. */
@@ -178,13 +183,16 @@ export function project(inputs: Inputs, horizonMonths: number): Projection {
     const principalPaid = withinTerm ? mortgagePay - interest : 0;
 
     const propertyTax = roundToCents((homeValue / 100) * (inputs.propertyTaxPct / 100) / 12);
+    // Council tax (UK) is a flat banded charge, so it tracks inflation rather
+    // than home value the way US property tax does.
+    const councilTax = roundToCents(((inputs.councilTaxAnnual ?? 0) / 100) * inflFactor / 12);
     const maintenance = roundToCents((homeValue / 100) * (inputs.maintenancePct / 100) / 12);
     const insurance = roundToCents((inputs.homeInsuranceAnnual / 100) * inflFactor / 12);
     const hoa = roundToCents((inputs.hoaMonthly / 100) * inflFactor);
     const taxBenefit = monthlyTaxBenefit(inputs, interest, propertyTax);
 
     const pmi = balance > pmiThreshold ? pmiMonthlyAmount : 0;
-    const buyerOutlay = mortgagePay + propertyTax + maintenance + insurance + hoa + pmi - taxBenefit;
+    const buyerOutlay = mortgagePay + propertyTax + councilTax + maintenance + insurance + hoa + pmi - taxBenefit;
 
     const rent = roundToCents((inputs.monthlyRent / 100) * rentFactor);
     const rentersIns = roundToCents((inputs.rentersInsuranceMonthly / 100) * inflFactor);

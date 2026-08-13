@@ -64,25 +64,43 @@ export function applyRate(balance: Cents, rate: number): Cents {
   return roundToCents((balance / 100) * rate);
 }
 
-const USD = new Intl.NumberFormat("en-US", {
-  style: "currency",
-  currency: "USD",
-  minimumFractionDigits: 2,
-  maximumFractionDigits: 2,
-});
+/** The two currencies the calculator speaks. The minor unit is 1/100 of the
+ *  major unit for both (cents, pence), so the integer-minor-unit engine is
+ *  identical — only the boundary formatting differs. */
+export type Currency = "USD" | "GBP";
+
+const LOCALE: Record<Currency, string> = { USD: "en-US", GBP: "en-GB" };
+
+const withCents: Record<Currency, Intl.NumberFormat> = {
+  USD: new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+  GBP: new Intl.NumberFormat("en-GB", { style: "currency", currency: "GBP", minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+};
+
+const whole: Record<Currency, Intl.NumberFormat> = {
+  USD: new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", minimumFractionDigits: 0, maximumFractionDigits: 0 }),
+  GBP: new Intl.NumberFormat("en-GB", { style: "currency", currency: "GBP", minimumFractionDigits: 0, maximumFractionDigits: 0 }),
+};
+
+/** Format integer minor units in the given currency, to the cent/penny. */
+export function formatMoney(cents: Cents, currency: Currency = "USD"): string {
+  return withCents[currency].format(cents / 100);
+}
+
+/** Whole-unit format for headline figures where the minor unit is noise. */
+export function formatMoney0(cents: Cents, currency: Currency = "USD"): string {
+  return whole[currency].format(Math.round(cents / 100));
+}
+
+/** The currency's symbol on its own (for inline "$"/"£" prefixes). */
+export function currencySymbol(currency: Currency): string {
+  return (0).toLocaleString(LOCALE[currency], { style: "currency", currency }).replace(/[\d.,\s]/g, "");
+}
 
 export function formatUSD(cents: Cents): string {
-  return USD.format(cents / 100);
+  return formatMoney(cents, "USD");
 }
 
 /** Whole-dollar format for headline figures where cents are noise. */
-const USD0 = new Intl.NumberFormat("en-US", {
-  style: "currency",
-  currency: "USD",
-  minimumFractionDigits: 0,
-  maximumFractionDigits: 0,
-});
-
 export function formatUSD0(cents: Cents): string {
-  return USD0.format(Math.round(cents / 100));
+  return formatMoney0(cents, "USD");
 }
