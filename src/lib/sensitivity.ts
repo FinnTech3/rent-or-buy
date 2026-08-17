@@ -11,7 +11,7 @@
  *
  * So this module does two things: it sweeps the three drivers across a
  * plausible band and reports the *range* of outcomes, and it runs a tornado
- * — moving one driver at a time — so you can see which assumption your answer
+ * - moving one driver at a time - so you can see which assumption your answer
  * is actually hostage to, rather than pretending they matter equally.
  */
 
@@ -42,7 +42,7 @@ export interface TornadoBar {
   /** Terminal difference with this driver at its low / high, others at base. */
   readonly lowDifference: Cents;
   readonly highDifference: Cents;
-  /** Absolute swing between low and high — how much this one assumption
+  /** Absolute swing between low and high - how much this one assumption
    *  moves the whole answer. Bars are sorted by this, largest first. */
   readonly swing: Cents;
 }

@@ -2,19 +2,19 @@
  * Monte Carlo over the assumptions that matter.
  *
  * The sensitivity sweep answers "what if appreciation / market return / rent
- * growth each land at the low, middle, or high of a band?" — nine-and-twenty
+ * growth each land at the low, middle, or high of a band?" - nine-and-twenty
  * discrete corners. This goes further: it draws each of those rates from a
  * distribution a thousand times and runs the full model on every draw, so the
  * output is a *probability* that buying wins and a spread of dollar outcomes,
  * not just a min and a max.
  *
  * What's random here is the horizon-average rate for each driver, not the
- * year-by-year path — the same framing the rest of the tool uses, extended
+ * year-by-year path - the same framing the rest of the tool uses, extended
  * from a grid to a smooth distribution. The spread narrows with a longer
  * horizon because the standard error of a long-run average shrinks with time
  * (σ ∝ 1/√years), which is honest: you're less uncertain about the average
  * return over twenty years than over three. It deliberately does not model
- * sequence-of-returns risk — that would need a path-based engine and is the
+ * sequence-of-returns risk - that would need a path-based engine and is the
  * next honest step, not this one.
  */
 
