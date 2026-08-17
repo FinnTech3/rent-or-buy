@@ -8,7 +8,8 @@
  * deliberate contrast to orderbook-live's trading-terminal density: warm
  * paper, a serif display voice, one accent, honest charts.
  */
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import type { PointerEvent as ReactPointerEvent } from "react";
 import type { ReactNode } from "react";
 
 import {
@@ -525,15 +526,39 @@ function BreakEvenChart({ proj, horizonMonths }: { proj: ReturnType<typeof proje
   const zeroY = yMin < 0 && yMax > 0 ? y(0) : null;
   const aheadIsBuy = months[months.length - 1]!.difference >= 0;
 
+  // Hover crosshair reading the real month from the projection, no invented data.
+  const [hover, setHover] = useState<number | null>(null);
+  const svgRef = useRef<SVGSVGElement>(null);
+  const onMove = (e: ReactPointerEvent<SVGSVGElement>): void => {
+    const el = svgRef.current;
+    if (!el || months.length < 2) return;
+    const r = el.getBoundingClientRect();
+    const px = ((e.clientX - r.left) / r.width) * W;
+    const frac = (px - padL) / (W - padL - padR);
+    const idx = Math.round(frac * (months.length - 1));
+    setHover(Math.max(0, Math.min(months.length - 1, idx)));
+  };
+  const hm = hover !== null ? months[hover]! : null;
+  const tipLeft = hover !== null && hover > months.length / 2;
+
   return (
     <section className="rb-card">
       <h3 className="rb-card-title">Net worth over time</h3>
       <p className="rb-card-sub">
         What each path is worth if you sold that year. They cross at break-even:
-        before it, renting is ahead; after, buying pulls away.
+        before it, renting is ahead; after, buying pulls away. Hover to read any month.
       </p>
       <div className="rb-chart">
-        <svg viewBox={`0 0 ${W} ${H}`} className="rb-chart-svg" role="img" aria-label="Net worth of buying versus renting over time">
+        <svg
+          ref={svgRef}
+          viewBox={`0 0 ${W} ${H}`}
+          className="rb-chart-svg"
+          style={{ touchAction: "none", cursor: "crosshair" }}
+          onPointerMove={onMove}
+          onPointerLeave={() => setHover(null)}
+          role="img"
+          aria-label="Net worth of buying versus renting over time"
+        >
           <polygon points={area} fill={aheadIsBuy ? "var(--buy-soft)" : "var(--rent-soft)"} opacity={0.5} />
           {zeroY !== null ? <line x1={padL} y1={zeroY} x2={W - padR} y2={zeroY} stroke="var(--line-2)" strokeWidth={0.5} strokeDasharray="2 2" /> : null}
           {be !== null ? (
@@ -541,7 +566,29 @@ function BreakEvenChart({ proj, horizonMonths }: { proj: ReturnType<typeof proje
           ) : null}
           <path d={renterPath} fill="none" stroke="var(--rent)" strokeWidth={1.4} />
           <path d={buyerPath} fill="none" stroke="var(--buy)" strokeWidth={1.4} />
+          {hm !== null ? (
+            <g pointerEvents="none">
+              <line x1={x(hm.month)} x2={x(hm.month)} y1={padT} y2={H - padB} stroke="var(--dim)" strokeOpacity={0.5} strokeWidth={0.7} />
+              <circle cx={x(hm.month)} cy={y(hm.renterNetWorth)} r={2.6} fill="var(--rent)" />
+              <circle cx={x(hm.month)} cy={y(hm.buyerNetWorth)} r={2.6} fill="var(--buy)" />
+            </g>
+          ) : null}
         </svg>
+        {hm !== null ? (
+          <div
+            className="rb-tip"
+            style={{ left: `${(x(hm.month) / W) * 100}%`, transform: tipLeft ? "translateX(calc(-100% - 14px))" : "translateX(14px)" }}
+            role="status"
+          >
+            <div className="rb-tip-head">Year {(hm.month / 12).toFixed(1)}</div>
+            <div className="rb-tip-row"><span><i style={{ background: "var(--buy)" }} />Buyer</span><b>{fmtCompact(hm.buyerNetWorth)}</b></div>
+            <div className="rb-tip-row"><span><i style={{ background: "var(--rent)" }} />Renter</span><b>{fmtCompact(hm.renterNetWorth)}</b></div>
+            <div className="rb-tip-row rb-tip-gap">
+              <span>Difference</span>
+              <b style={{ color: hm.difference >= 0 ? "var(--buy)" : "var(--rent)" }}>{signed(hm.difference)}</b>
+            </div>
+          </div>
+        ) : null}
         <div className="rb-chart-axis">
           <span>Year 0</span>
           {be !== null ? <span className="rb-be-label">break-even ≈ {(be / 12).toFixed(1)} yr</span> : <span className="rb-be-label">no break-even in horizon</span>}
@@ -754,7 +801,16 @@ function Tokens(): JSX.Element {
       .rb-mc b { color: var(--ink); font-family: var(--mono); font-weight: 500; }
 
       /* chart */
+      .rb-chart { position: relative; }
       .rb-chart-svg { width: 100%; height: auto; display: block; }
+      .rb-tip { position: absolute; top: 4px; z-index: 5; pointer-events: none; min-width: 150px;
+        background: var(--panel); border: 1px solid var(--line-2); border-radius: 7px; padding: 9px 11px;
+        font-family: var(--mono); box-shadow: 0 10px 28px rgba(0,0,0,0.14); }
+      .rb-tip-head { font-size: 10.5px; color: var(--dim); margin-bottom: 6px; }
+      .rb-tip-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; font-size: 11.5px; color: var(--text); margin-top: 3px; }
+      .rb-tip-row b { color: var(--ink); font-weight: 500; }
+      .rb-tip-row i { display: inline-block; width: 12px; height: 2.5px; border-radius: 1px; margin-right: 7px; vertical-align: middle; }
+      .rb-tip-gap { border-top: 1px solid var(--line); margin-top: 6px; padding-top: 6px; }
       .rb-chart-axis { display: flex; justify-content: space-between; font-family: var(--mono); font-size: 10.5px; color: var(--dim); margin-top: 4px; }
       .rb-be-label { color: var(--accent); }
       .rb-legend { display: flex; gap: 18px; margin-top: 12px; font-family: var(--mono); font-size: 11.5px; color: var(--text); }
