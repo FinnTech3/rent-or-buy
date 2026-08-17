@@ -7,7 +7,7 @@ import { effectiveSdltRate, stampDuty } from "../src/lib/sdlt.js";
 const p = (pounds: number): number => dollarsToCents(String(pounds));
 const pounds = (cents: number): number => cents / 100;
 
-describe("stampDuty — standard residential", () => {
+describe("stampDuty, standard residential", () => {
   it("matches the hand-computed duty at each brief price point", () => {
     expect(pounds(stampDuty(p(600_000)))).toBe(20_000);
     expect(pounds(stampDuty(p(850_000)))).toBe(32_500);
@@ -37,9 +37,9 @@ describe("stampDuty — standard residential", () => {
   });
 });
 
-describe("stampDuty — reliefs and surcharges", () => {
+describe("stampDuty, reliefs and surcharges", () => {
   it("gives first-time buyers relief up to the £500k cap", () => {
-    // FTB: 0% to £300k, 5% on £300k–£500k = £10,000.
+    // FTB: 0% to £300k, 5% on £300k-£500k = £10,000.
     expect(pounds(stampDuty(p(500_000), { firstTimeBuyer: true }))).toBe(10_000);
     // Below £300k an FTB pays nothing.
     expect(stampDuty(p(295_000), { firstTimeBuyer: true })).toBe(0);

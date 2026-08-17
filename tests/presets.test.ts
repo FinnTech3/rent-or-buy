@@ -21,7 +21,7 @@ describe("presets", () => {
     expect(inputs.downPayment).toBe(Math.round(inputs.homePrice * 0.2));
   });
 
-  it("the presets do not all give the same verdict — the whole point", () => {
+  it("the presets do not all give the same verdict, the whole point", () => {
     const verdicts = new Set(PRESETS.map((p) => {
       const { inputs, horizonMonths } = buildInputs(p.form);
       return verdict(analyse(inputs, horizonMonths));

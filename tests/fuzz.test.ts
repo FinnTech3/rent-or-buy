@@ -8,7 +8,7 @@ import { mulberry32 } from "../src/lib/random.js";
 
 /**
  * Property-based hardening: throw hundreds of random-but-plausible scenarios
- * at the engine and assert the invariants that must hold no matter what — no
+ * at the engine and assert the invariants that must hold no matter what, no
  * NaNs, money stays integer cents, the loan only ever shrinks, and the
  * derived figures stay finite. Financial code earns trust by surviving inputs
  * nobody hand-picked, not by passing a few tidy examples.
@@ -20,7 +20,7 @@ const pickInt = (lo: number, hi: number): number => Math.floor(pick(lo, hi + 1))
 
 function randomScenario(): { inputs: Inputs; horizonMonths: number } {
   const homePrice = dollarsToCents(String(pickInt(80_000, 2_000_000)));
-  const downPct = pick(0, 1); // 0%–100% down
+  const downPct = pick(0, 1); // 0% to 100% down
   return {
     horizonMonths: pickInt(12, 360),
     inputs: {

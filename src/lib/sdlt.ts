@@ -13,12 +13,12 @@
  * 1 April 2025 (gov.uk/stamp-duty-land-tax/residential-property-rates):
  *
  *   up to £125,000        0%
- *   £125,001–£250,000     2%
- *   £250,001–£925,000     5%
- *   £925,001–£1,500,000  10%
+ *   £125,001 to £250,000     2%
+ *   £250,001 to £925,000     5%
+ *   £925,001 to £1,500,000  10%
  *   above £1,500,000     12%
  *
- * A first-time buyer pays nothing up to £300,000 and 5% on £300,001–£500,000,
+ * A first-time buyer pays nothing up to £300,000 and 5% on £300,001 to £500,000,
  * but only if the price is £500,000 or less - above that, standard rates apply
  * with no relief. An additional dwelling (a second home or a buy-to-let) pays
  * a 5-percentage-point surcharge on every band, including the first.

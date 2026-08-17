@@ -1,7 +1,7 @@
 name: deploy-pages
 
 # Builds the calculator and publishes it to GitHub Pages. The whole thing is
-# client-side — the engine runs in the browser — so static hosting is all it
+# client-side: the engine runs in the browser, so static hosting is all it
 # needs. Runs on every push to main.
 
 on:

@@ -12,8 +12,8 @@
  * derivation is cross-checked against published average rents in the tests.
  *
  * Sources (captured August 2026):
- *  - Gross yields, London: prime-central ≈ 3.5% (range 2.5–4%), outer-prime /
- *    broader London 5.0–5.8% - Savills Prime Residential and Cluttons Prime
+ *  - Gross yields, London: prime-central ≈ 3.5% (range 2.5 to 4%), outer-prime /
+ *    broader London 5.0 to 5.8% - Savills Prime Residential and Cluttons Prime
  *    London rental updates, Q4 2025; Global Property Guide UK yields.
  *  - Gross yields, Winchester: 2.7% (SO21), 3.4% (SO23), 3.8% (SO22) -
  *    PropertyInvestmentsUK, Winchester buy-to-let, 2025.
