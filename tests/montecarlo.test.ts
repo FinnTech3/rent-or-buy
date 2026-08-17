@@ -63,7 +63,7 @@ describe("simulate", () => {
     expect(r.pBuyWins).toBeLessThan(0.2);
   });
 
-  it("uncertainty (the 10–90 spread) narrows with a longer horizon", () => {
+  it("uncertainty (the 10 to 90 spread) narrows with a longer horizon", () => {
     const short = simulate(BASE, 36, { seed: 7, trials: 600 });
     const long = simulate(BASE, 300, { seed: 7, trials: 600 });
     // Per dollar-year the spread should be tighter far out; compare the raw

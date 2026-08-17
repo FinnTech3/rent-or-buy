@@ -30,7 +30,7 @@ const BASE: Inputs = {
 const at = (i: Partial<Inputs>, years = 10) =>
   terminal(project({ ...BASE, ...i }, years * 12)).difference;
 
-describe("project — shape and sanity", () => {
+describe("project, shape and sanity", () => {
   it("produces a point per month with finite money", () => {
     const p = project(BASE, 120);
     expect(p.months).toHaveLength(120);
@@ -65,7 +65,7 @@ describe("project — shape and sanity", () => {
   });
 });
 
-describe("project — economics move the right way", () => {
+describe("project, economics move the right way", () => {
   it("faster appreciation favors buying", () => {
     expect(at({ homeAppreciationPct: 6 })).toBeGreaterThan(at({ homeAppreciationPct: 2 }));
   });
@@ -92,7 +92,7 @@ describe("project — economics move the right way", () => {
       .toBeGreaterThan(at({ downPayment: dollarsToCents("40000") }));
   });
 
-  it("the tax deduction is usually worth nothing — the standard deduction wins", () => {
+  it("the tax deduction is usually worth nothing, the standard deduction wins", () => {
     // The honest finding: for a normal married-filer scenario, itemized
     // interest + capped SALT falls short of the standard deduction, so a
     // 32% marginal rate buys exactly zero benefit.
@@ -126,7 +126,7 @@ describe("project — economics move the right way", () => {
   });
 });
 
-describe("project — degenerate inputs stay finite", () => {
+describe("project, degenerate inputs stay finite", () => {
   it("all-cash purchase (no loan) works", () => {
     const p = project({ ...BASE, downPayment: BASE.homePrice }, 120);
     expect(p.months[119]!.loanBalance).toBe(0);

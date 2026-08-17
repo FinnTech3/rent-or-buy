@@ -14,7 +14,7 @@ export function mulberry32(seed: number): () => number {
   };
 }
 
-/** A standard-normal draw via Box–Muller from a uniform generator. */
+/** A standard-normal draw via Box-Muller from a uniform generator. */
 export function normal(rng: () => number): number {
   let u = 0;
   let v = 0;

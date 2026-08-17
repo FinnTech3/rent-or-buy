@@ -44,7 +44,7 @@ starting scenario for each tool, and the assumptions it embeds (all editable).
   +5% SDLT surcharge already supported in `sdlt.ts`, and reframes the question
   as yield vs. alternative investment rather than lifestyle.
 
-Income ranges (£29k–£140k) are illustrative and labelled as such. **Do not
+Income ranges (£29k-£140k) are illustrative and labelled as such. **Do not
 invent persona data beyond this documented spread** - new personas must stay
 inside it or cite a source.
 

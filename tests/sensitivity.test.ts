@@ -34,7 +34,7 @@ describe("analyse", () => {
     expect(s.base.terminalDifference).toBeLessThanOrEqual(s.best);
   });
 
-  it("reports a genuinely wide band — the point of the whole project", () => {
+  it("reports a genuinely wide band, the point of the whole project", () => {
     const s = analyse(BASE, 120);
     expect(s.best).toBeGreaterThan(s.worst);
   });

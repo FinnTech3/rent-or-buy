@@ -37,9 +37,9 @@ linearly.
 | £2,000,000 | 3.5% | £5,833 | 2.8% | £4,667 |
 | £3,000,000 | 3.2% | £8,000 | 2.6% | £6,500 |
 
-*Yield sources - London:* Savills *Prime residential rents* (Q3–Q4 2025) and
+*Yield sources - London:* Savills *Prime residential rents* (Q3 to Q4 2025) and
 Cluttons *Prime London rental market update* put prime-central gross yields at
-~3.5% (range 2.5–4%) and outer-prime / broader London at 5.0–5.8%; Global
+~3.5% (range 2.5 to 4%) and outer-prime / broader London at 5.0 to 5.8%; Global
 Property Guide corroborates the London range. *Winchester:*
 PropertyInvestmentsUK *Winchester buy-to-let* reports gross yields of 2.7%
 (SO21), 3.4% (SO23) and 3.8% (SO22). The per-tier yields above sit inside these
@@ -79,9 +79,9 @@ use each area's published 2025/26 Band D and scale by the statutory band ratios
 |---|---:|---:|
 | D (published base) | £1,690 | £2,190 |
 | E (£600k tier) | £2,066 | £2,677 |
-| F (£850k–£1m tiers) | £2,441 | £3,163 |
+| F (£850k-£1m tiers) | £2,441 | £3,163 |
 | G (£1.5m tier) | £2,817 | £3,650 |
-| H (£2m–£3m tiers) | £3,380 | £4,380 |
+| H (£2m-£3m tiers) | £3,380 | £4,380 |
 
 *Sources:* London average Band D £1,690 for 2025/26 (Westminster is far lower at
 £1,017 - inner boroughs are subsidised by business rates); Winchester-area total

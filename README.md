@@ -84,7 +84,7 @@ pounds:
   the US model there's simply no deduction to flatter buying.
 
 It ships with **example profiles built from real UK data**: six price points
-(£600k–£3m) across London and Winchester, six personas from first home to
+(£600k-£3m) across London and Winchester, six personas from first home to
 ultra-prime. Pick a city and a persona and the scenario loads. The rents aren't
 typed in - each is `price × published gross yield ÷ 12`, and the yields are
 sourced (Savills/Cluttons for London, PropertyInvestmentsUK for Winchester). The
@@ -122,7 +122,7 @@ The buyer's edge is forced saving and leverage on appreciation; the renter's
 edge is a large liquid sum invested from day one and no transaction costs.
 Which wins is genuinely uncertain, which is why the output is a range.
 
-**The tax deduction is modeled honestly, which usually means it's worth
+**The tax deduction is modelled honestly, which usually means it's worth
 nothing.** "You get to write off the mortgage interest" is the most-repeated
 reason to buy and the most overstated. The engine only credits the marginal
 rate on the amount by which itemizing *beats* the standard deduction, after
