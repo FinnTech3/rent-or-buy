@@ -1,7 +1,7 @@
 /**
  * Scenario ⇄ URL. Encodes the whole input state into a query string so any
  * result is a shareable link, and decodes one back, tolerating missing or
- * garbage keys by falling back to the defaults. Pure functions — no DOM — so
+ * garbage keys by falling back to the defaults. Pure functions - no DOM - so
  * the round-trip is unit-tested.
  */
 

@@ -1,4 +1,4 @@
-# UK example profiles — the data, and where it comes from
+# UK example profiles - the data, and where it comes from
 
 The brief for the UK profiles was explicit: **use only real UK housing-market
 data, don't fabricate numbers.** This document is the audit trail for that. Every
@@ -8,7 +8,7 @@ by one transparent calculation that's stated here and enforced by a test.
 ## The one thing that is *derived*, and how
 
 There is no published statistic for "the monthly rent of an £850,000 property".
-Rent doesn't track a single asking price — it tracks the **area** and the
+Rent doesn't track a single asking price - it tracks the **area** and the
 **gross rental yield**. So each profile's rent is one calculation:
 
 ```
@@ -37,7 +37,7 @@ linearly.
 | £2,000,000 | 3.5% | £5,833 | 2.8% | £4,667 |
 | £3,000,000 | 3.2% | £8,000 | 2.6% | £6,500 |
 
-*Yield sources — London:* Savills *Prime residential rents* (Q3–Q4 2025) and
+*Yield sources - London:* Savills *Prime residential rents* (Q3–Q4 2025) and
 Cluttons *Prime London rental market update* put prime-central gross yields at
 ~3.5% (range 2.5–4%) and outer-prime / broader London at 5.0–5.8%; Global
 Property Guide corroborates the London range. *Winchester:*
@@ -47,7 +47,7 @@ published bands and decline with price. *Cross-check:* ONS *Private rent and
 house prices* (2026) gives average rents of ≈£2,290/mo (London) and ≈£1,504/mo
 (Winchester).
 
-## Stamp Duty (SDLT) — published, not derived
+## Stamp Duty (SDLT) - published, not derived
 
 Standard residential rates for England & NI from 1 April 2025
 ([gov.uk](https://www.gov.uk/stamp-duty-land-tax/residential-property-rates)):
@@ -65,10 +65,10 @@ Standard residential rates for England & NI from 1 April 2025
 
 First-time-buyer relief (0% to £300k, 5% to £500k) only applies at or below
 £500k, so it never touches these profiles. A second home or buy-to-let adds a
-5-point surcharge on every band — supported in the code, not applied to these
+5-point surcharge on every band - supported in the code, not applied to these
 primary-residence profiles.
 
-## Council tax — area-representative band figures
+## Council tax - area-representative band figures
 
 Council tax is a flat banded charge, **not** a percentage of value, and England's
 bands are frozen at 1991 values, so it barely tracks today's price. The profiles
@@ -84,9 +84,9 @@ use each area's published 2025/26 Band D and scale by the statutory band ratios
 | H (£2m–£3m tiers) | £3,380 | £4,380 |
 
 *Sources:* London average Band D £1,690 for 2025/26 (Westminster is far lower at
-£1,017 — inner boroughs are subsidised by business rates); Winchester-area total
+£1,017 - inner boroughs are subsidised by business rates); Winchester-area total
 Band D ≈ £2,190 including all precepts (Hampshire County, police, fire, parish).
-These are editable defaults in the tool — a starting point, not a claim about a
+These are editable defaults in the tool - a starting point, not a claim about a
 specific address. Note Winchester runs **higher** than London for the same band,
 which surprises people and is real.
 
@@ -97,13 +97,13 @@ costs." They move in opposite directions, which is half the point:
 
 - **Mortgage principal & interest is nominal-fixed.** On a fixed-rate loan the
   monthly payment never changes, so inflation quietly *erodes* it in real terms
-  — the single biggest hidden advantage of buying, and one a "payment vs rent"
+  - the single biggest hidden advantage of buying, and one a "payment vs rent"
   comparison misses entirely.
 - **Rent compounds every year** at the rent-growth rate (default 3%, near the
   ONS UK private-rent trend), so the renter's cost pulls away from the buyer's
   fixed payment over time.
 - **Council tax, insurance and service charge grow with general inflation**
-  (default 2%, the Bank of England target — a placeholder to set yourself).
+  (default 2%, the Bank of England target - a placeholder to set yourself).
 
 So a higher inflation / rent-growth assumption helps buying and hurts renting;
 the tornado chart ranks exactly how much. Over a 10-year hold at 3% rent growth,

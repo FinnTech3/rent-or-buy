@@ -1,7 +1,7 @@
 /**
  * Headless report: run a scenario through the engine and print the honest
- * answer — the range, the break-even, and which assumption the call hinges
- * on — with no UI. Proves the backend end to end and is handy for eyeballing
+ * answer - the range, the break-even, and which assumption the call hinges
+ * on - with no UI. Proves the backend end to end and is handy for eyeballing
  * numbers against your own spreadsheet.
  *
  *   npx tsx src/cli/analyze.ts [horizonYears]
@@ -53,7 +53,7 @@ const pay = monthlyPayment(
 const line = (label: string, value: string) => console.log(label.padEnd(30) + value);
 const years = (m: number | null) => (m === null ? "never" : `${(m / 12).toFixed(1)} yr (month ${m})`);
 
-console.log(`\n  RENT-OR-BUY — ${formatUSD0(SCENARIO.homePrice)} home, ${YEARS}-year horizon\n`);
+console.log(`\n  RENT-OR-BUY - ${formatUSD0(SCENARIO.homePrice)} home, ${YEARS}-year horizon\n`);
 line("Mortgage P&I", `${formatUSD(pay)} / mo`);
 line("First-month buyer outlay", `${formatUSD(proj.months[0]!.buyerOutlay)} / mo`);
 line("First-month rent outlay", `${formatUSD(proj.months[0]!.renterOutlay)} / mo`);

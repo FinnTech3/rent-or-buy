@@ -1,9 +1,9 @@
 /**
- * Path-based Monte Carlo — the honest completion of the uncertainty model.
+ * Path-based Monte Carlo - the honest completion of the uncertainty model.
  *
  * The averages-based simulation in montecarlo.ts draws one horizon-average
  * rate per driver. This one draws a *fresh return every year* and compounds
- * it month by month, so the ordering of good and bad years matters — which
+ * it month by month, so the ordering of good and bad years matters - which
  * it genuinely does here, because both parties dollar-cost-average their
  * monthly surplus into the market, and a crash early in the hold hurts a
  * portfolio that is still being fed differently from a crash late. That is
@@ -13,8 +13,8 @@
  * The deterministic parts (the mortgage schedule, taxes, insurance, PMI) are
  * mirrored from the model in ../model.ts; a test pins the two together by
  * checking that this simulator with zero volatility reproduces the model's
- * terminal number. Only the three uncertain drivers — appreciation, market
- * return, rent growth — are randomized, each with an annual volatility; the
+ * terminal number. Only the three uncertain drivers - appreciation, market
+ * return, rent growth - are randomized, each with an annual volatility; the
  * √years shrinkage of the average emerges for free from summing independent
  * years rather than being imposed.
  */

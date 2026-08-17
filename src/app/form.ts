@@ -158,7 +158,7 @@ export function buildInputs(f: FormState): { inputs: Inputs; horizonMonths: numb
 }
 
 /** One-click example scenarios, chosen so the verdict genuinely differs
- *  between them — the point being that the answer is a function of the
+ *  between them - the point being that the answer is a function of the
  *  situation, not a universal "buying builds wealth" slogan. */
 export interface Preset {
   readonly name: string;
@@ -218,7 +218,7 @@ export const PRESETS: readonly Preset[] = [
 
 /** Build a complete UK scenario from a profile and a city. Rent and council
  *  tax come from the sourced data in ukData; the macro assumptions are the
- *  shared UK defaults. Everything is real or a labelled assumption — nothing
+ *  shared UK defaults. Everything is real or a labelled assumption - nothing
  *  is hand-typed per profile. */
 export function ukProfileForm(profile: UkProfile, location: UkLocation): FormState {
   const r = resolveProfile(profile, location);
@@ -234,7 +234,7 @@ export function ukProfileForm(profile: UkProfile, location: UkLocation): FormSta
     sellingCostsPct: a.sellingCostsPct,
     maintenancePct: a.maintenancePct,
     homeInsuranceAnnual: String(a.buildingsInsuranceAnnualGBP),
-    hoaMonthly: "0", // Leasehold service charge — user adds it if a flat.
+    hoaMonthly: "0", // Leasehold service charge - user adds it if a flat.
     councilTaxAnnual: String(r.councilTaxAnnualGBP),
     homeAppreciationPct: a.homeAppreciationPct,
     monthlyRent: String(r.monthlyRentGBP),
