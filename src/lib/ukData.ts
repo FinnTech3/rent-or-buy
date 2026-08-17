@@ -1,5 +1,5 @@
 /**
- * The UK example profiles — and, more importantly, where every number in them
+ * The UK example profiles - and, more importantly, where every number in them
  * comes from.
  *
  * The brief was explicit: use only real UK housing-market data, don't fabricate
@@ -13,12 +13,12 @@
  *
  * Sources (captured August 2026):
  *  - Gross yields, London: prime-central ≈ 3.5% (range 2.5–4%), outer-prime /
- *    broader London 5.0–5.8% — Savills Prime Residential and Cluttons Prime
+ *    broader London 5.0–5.8% - Savills Prime Residential and Cluttons Prime
  *    London rental updates, Q4 2025; Global Property Guide UK yields.
- *  - Gross yields, Winchester: 2.7% (SO21), 3.4% (SO23), 3.8% (SO22) —
+ *  - Gross yields, Winchester: 2.7% (SO21), 3.4% (SO23), 3.8% (SO22) -
  *    PropertyInvestmentsUK, Winchester buy-to-let, 2025.
  *  - Average rents (used only as a sanity check, not as inputs): London ≈
- *    £2,290/mo, Winchester ≈ £1,504/mo — ONS Private rent and house prices,
+ *    £2,290/mo, Winchester ≈ £1,504/mo - ONS Private rent and house prices,
  *    2026.
  *  - Council tax 2025/26: London average Band D £1,690 (Westminster £1,017);
  *    Winchester-area total Band D ≈ £2,190 (all precepts). Higher bands scale
@@ -26,7 +26,7 @@
  *  - SDLT: gov.uk residential rates from 1 April 2025 (see sdlt.ts).
  *
  * Yields fall as price rises, because prime property is bought for capital and
- * lifestyle, not income — that compression is real and is why a £3m home rents
+ * lifestyle, not income - that compression is real and is why a £3m home rents
  * for far less than six times a £600k one. Council tax figures are
  * area-representative assumptions the user can edit; unlike rent they barely
  * track current value (England's bands are frozen at 1991 values), so they are
@@ -102,15 +102,15 @@ export interface UkProfile {
 // fixed, the rent (and council tax) is what changes with where you live.
 export const PROFILES: readonly UkProfile[] = [
   { id: "first-home", persona: "First home", priceGBP: 600_000, councilTaxBand: "E",
-    note: "A first purchase — a one/two-bed flat in London, a small house around Winchester." },
+    note: "A first purchase - a one/two-bed flat in London, a small house around Winchester." },
   { id: "trading-up", persona: "Trading up", priceGBP: 850_000, councilTaxBand: "F",
     note: "Second move, more space, a bigger mortgage but real equity behind it." },
   { id: "family-home", persona: "Family home", priceGBP: 1_000_000, councilTaxBand: "F",
-    note: "The classic seven-figure family house — the level where SDLT first bites hard." },
+    note: "The classic seven-figure family house - the level where SDLT first bites hard." },
   { id: "established", persona: "Established family", priceGBP: 1_500_000, councilTaxBand: "G",
     note: "Settled, higher-rate territory; £93,750 of stamp duty to find up front." },
   { id: "prime", persona: "Prime", priceGBP: 2_000_000, councilTaxBand: "H",
-    note: "Prime market — yields compress and the buy-side sunk costs dominate." },
+    note: "Prime market - yields compress and the buy-side sunk costs dominate." },
   { id: "ultra-prime", persona: "Ultra-prime", priceGBP: 3_000_000, councilTaxBand: "H",
     note: "Trophy end. £273,750 in stamp duty alone; rent looks very different here." },
 ];
@@ -147,7 +147,7 @@ export function resolveProfile(profile: UkProfile, location: UkLocation): Resolv
 }
 
 /** UK macro assumptions used by the example profiles. Reasonable, current, and
- *  labelled as assumptions in the UI — the user can change any of them. The
+ *  labelled as assumptions in the UI - the user can change any of them. The
  *  inflation rate is the brief's placeholder, defaulted to the Bank of England
  *  target rather than left blank. */
 export const UK_ASSUMPTIONS = {
@@ -156,7 +156,7 @@ export const UK_ASSUMPTIONS = {
   downPaymentPct: 25, // Typical deposit at these price points.
   sellingCostsPct: 2, // Estate agent (~1.4% + VAT) plus legal.
   maintenancePct: 1,
-  homeAppreciationPct: 3, // Placeholder — the assumption the answer hinges on.
+  homeAppreciationPct: 3, // Placeholder - the assumption the answer hinges on.
   rentGrowthPct: 3, // ONS UK private-rent inflation has run ~3-4%.
   investmentReturnPct: 6,
   inflationPct: 2.0, // [placeholder] the Bank of England's 2% target.

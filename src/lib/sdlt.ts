@@ -1,12 +1,12 @@
 /**
- * Stamp Duty Land Tax — the UK's big irrecoverable cost of buying.
+ * Stamp Duty Land Tax - the UK's big irrecoverable cost of buying.
  *
  * In the US model the buyer's sunk cost at purchase is "closing costs", a
  * couple of percent. In England and Northern Ireland it's SDLT, a progressive,
  * banded tax that dwarfs everything else at the top of the market: a £2m
  * purchase pays £153,750 in duty alone. Getting the rent-vs-buy answer right
  * for the UK is impossible without modelling it, because SDLT is money the
- * buyer never sees again — exactly the kind of one-way cost this whole tool
+ * buyer never sees again - exactly the kind of one-way cost this whole tool
  * exists to stop people ignoring.
  *
  * Rates are the standard residential rates for England & NI in force from
@@ -19,7 +19,7 @@
  *   above £1,500,000     12%
  *
  * A first-time buyer pays nothing up to £300,000 and 5% on £300,001–£500,000,
- * but only if the price is £500,000 or less — above that, standard rates apply
+ * but only if the price is £500,000 or less - above that, standard rates apply
  * with no relief. An additional dwelling (a second home or a buy-to-let) pays
  * a 5-percentage-point surcharge on every band, including the first.
  *
@@ -64,7 +64,7 @@ export interface SdltOptions {
 
 /**
  * The SDLT due on a residential purchase, in pence. Walks the price through
- * the marginal bands — only the slice of the price that falls inside a band is
+ * the marginal bands - only the slice of the price that falls inside a band is
  * taxed at that band's rate, which is what makes the effective rate climb
  * smoothly rather than jumping at each threshold.
  */
@@ -88,7 +88,7 @@ export function stampDuty(price: Cents, options: SdltOptions = {}): Cents {
 }
 
 /**
- * The effective SDLT rate — total duty as a fraction of the price. Useful for
+ * The effective SDLT rate - total duty as a fraction of the price. Useful for
  * showing "you'll pay 9.1% of the price in stamp duty" next to the raw figure,
  * which lands harder than the number alone.
  */

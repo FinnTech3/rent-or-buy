@@ -3,7 +3,7 @@
  * render is untrustworthy, so every simulation is seeded and reproducible.
  */
 
-/** mulberry32 — a small, fast, well-distributed 32-bit PRNG. */
+/** mulberry32 - a small, fast, well-distributed 32-bit PRNG. */
 export function mulberry32(seed: number): () => number {
   let a = seed >>> 0;
   return () => {

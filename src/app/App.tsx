@@ -4,7 +4,7 @@
  * the break-even year, and which assumption the answer is actually hostage to.
  *
  * All the economics live in ../lib (project / analyse / verdict). This file is
- * inputs and presentation only — no financial logic. The design language is a
+ * inputs and presentation only - no financial logic. The design language is a
  * deliberate contrast to orderbook-live's trading-terminal density: warm
  * paper, a serif display voice, one accent, honest charts.
  */
@@ -109,9 +109,9 @@ export function App(): JSX.Element {
             </div>
             <p className="rb-tagline">
               The honest version. Not “is the mortgage cheaper than rent?” but
-              “which leaves you wealthier when you sell — and how sure can you
+              “which leaves you wealthier when you sell, and how sure can you
               be?”{form.region === "UK"
-                ? " UK mode: stamp duty, council tax, no mortgage-interest relief — the real cost of buying here."
+                ? " UK mode adds stamp duty, council tax, and no mortgage-interest relief: the real cost of buying here."
                 : ""}
             </p>
           </header>
@@ -197,7 +197,7 @@ function InputsPanel(props: {
       </Group>
 
       {uk ? null : (
-        <Group title="Taxes (optional — usually a wash)">
+        <Group title="Taxes (optional, usually a wash)">
           <FilingField value={form.filingStatus} onChange={(v) => set("filingStatus", v)} />
           <NumberField label="Marginal tax rate" value={form.marginalTaxRatePct} onChange={(v) => set("marginalTaxRatePct", v)} step={1} suffix="%" />
           <MoneyField label="State/local tax / yr" value={form.stateLocalTaxAnnual} onChange={(v) => set("stateLocalTaxAnnual", v)} />
@@ -215,8 +215,8 @@ function InputsPanel(props: {
 
 function RegionSwitch(props: { region: Region; onChange: (r: Region) => void }): JSX.Element {
   const regions: { id: Region; label: string }[] = [
-    { id: "US", label: "🇺🇸 US" },
-    { id: "UK", label: "🇬🇧 UK" },
+    { id: "US", label: "US" },
+    { id: "UK", label: "UK" },
   ];
   return (
     <span className="rb-filing" role="group" aria-label="Country">
@@ -285,7 +285,7 @@ function UkPresetRow(props: { current: FormState; onPick: (f: FormState) => void
         Rent is derived as price × gross&nbsp;yield ÷ 12 from published{" "}
         {current.ukLocation} yields (Savills/Cluttons; PropertyInvestmentsUK for
         Winchester), not typed in. Council tax, stamp duty and the macro
-        assumptions are labelled and editable — the inflation rate is a
+        assumptions are labelled and editable. The inflation rate is a
         placeholder set to the 2% BoE target.
       </p>
     </div>
@@ -406,8 +406,8 @@ function VerdictBlock(props: {
   const driverLabel = DRIVER_LABEL[driver] ?? driver;
 
   const sentence = call === "toss-up"
-    ? `Over ${props.horizonYears} years, ${winner} edges ahead by ${money0(Math.abs(diff))} — but the plausible range runs from ${signed(sens.worst)} to ${signed(sens.best)}. This is close to a coin flip, and it hinges mostly on ${driverLabel}.`
-    : `Over ${props.horizonYears} years, ${VERDICT_COPY[call].word.toLowerCase()}ing wins across every plausible assumption — from ${signed(sens.worst)} in the worst case to ${signed(sens.best)} in the best. The result is driven mostly by ${driverLabel}.`;
+    ? `Over ${props.horizonYears} years, ${winner} edges ahead by ${money0(Math.abs(diff))}, but the plausible range runs from ${signed(sens.worst)} to ${signed(sens.best)}. This is close to a coin flip, and it hinges mostly on ${driverLabel}.`
+    : `Over ${props.horizonYears} years, ${VERDICT_COPY[call].word.toLowerCase()}ing wins across every plausible assumption, from ${signed(sens.worst)} in the worst case to ${signed(sens.best)} in the best. The result is driven mostly by ${driverLabel}.`;
 
   return (
     <section className="rb-verdict">
@@ -529,8 +529,8 @@ function BreakEvenChart({ proj, horizonMonths }: { proj: ReturnType<typeof proje
     <section className="rb-card">
       <h3 className="rb-card-title">Net worth over time</h3>
       <p className="rb-card-sub">
-        What each path is worth if you sold that year. They cross at break-even
-        — before it, renting is ahead; after, buying pulls away.
+        What each path is worth if you sold that year. They cross at break-even:
+        before it, renting is ahead; after, buying pulls away.
       </p>
       <div className="rb-chart">
         <svg viewBox={`0 0 ${W} ${H}`} className="rb-chart-svg" role="img" aria-label="Net worth of buying versus renting over time">
@@ -618,18 +618,18 @@ function Disclosures({ region }: { region: Region }): JSX.Element {
     <details className="rb-disclose">
       <summary>What this model deliberately doesn't pretend to know</summary>
       <ul>
-        <li><b>Fixed rate, no refinancing.</b> No ARMs and no rate path — a forecast on top of a forecast.</li>
+        <li><b>Fixed rate, no refinancing.</b> No ARMs and no rate path, just a forecast on top of a forecast.</li>
         <li><b>Deterministic, not Monte Carlo.</b> The range comes from sweeping assumptions, not simulating market volatility, so it understates tail risk on the invested side.</li>
         {region === "UK" ? (
           <>
-            <li><b>Rent is derived from yield, not a listing.</b> Each example rent is price × gross&nbsp;yield ÷ 12 using published London/Winchester yields — a transparent estimate, not the asking price of a specific flat. Yields compress at the top, which is modelled.</li>
+            <li><b>Rent is derived from yield, not a listing.</b> Each example rent is price × gross&nbsp;yield ÷ 12 using published London/Winchester yields: a transparent estimate, not the asking price of a specific flat. Yields compress at the top, which is modelled.</li>
             <li><b>Council tax is an area-representative band figure.</b> England's bands are frozen at 1991 values, so it barely tracks today's price; treat the default as a starting point and set your own.</li>
             <li><b>SDLT is the standard owner-occupier rate.</b> First-time-buyer relief (only ≤£500k) and the +5% additional-property surcharge for a second home or buy-to-let aren't applied to these primary-residence profiles.</li>
-            <li><b>No mortgage-interest relief.</b> Correct for UK owner-occupiers — it was abolished — so unlike the US model there's no deduction to flatter buying.</li>
+            <li><b>No mortgage-interest relief.</b> Correct for UK owner-occupiers (it was abolished), so unlike the US model there's no deduction to flatter buying.</li>
           </>
         ) : (
           <>
-            <li><b>The tax deduction is simplified and off by default.</b> It ignores the SALT cap and the standard-deduction crossover — the two things that shrink the real benefit — so it won't overstate buying unless you opt in with a marginal rate.</li>
+            <li><b>The tax deduction is simplified and off by default.</b> It ignores the SALT cap and the standard-deduction crossover - the two things that shrink the real benefit - so it won't overstate buying unless you opt in with a marginal rate.</li>
             <li><b>Property tax tracks market value.</b> Places with assessment caps (California's Prop 13) would tax more slowly than this assumes.</li>
           </>
         )}
@@ -644,139 +644,139 @@ function Tokens(): JSX.Element {
   return (
     <style>{`
       :root {
-        --bg:#faf9f7; --panel:#ffffff; --panel-2:#f4f2ee; --line:#e7e3dd; --line-2:#d6d1c8;
-        --ink:#1a1d1f; --text:#3c4043; --dim:#6b7075; --dim-2:#9a9ea3;
-        --accent:#1f6f78; --accent-soft:rgba(31,111,120,0.14);
-        --buy:#2f7d55; --buy-soft:rgba(47,125,85,0.14);
-        --rent:#b5673f; --rent-soft:rgba(181,103,63,0.14);
-        --serif: Georgia, 'Times New Roman', 'Iowan Old Style', serif;
-        --sans: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+        --bg:#ffffff; --panel:#ffffff; --panel-2:#f3f4f6; --line:#e6e8eb; --line-2:#d2d6db;
+        --ink:#0f1419; --text:#343b43; --dim:#697079; --dim-2:#9aa1a9;
+        --accent:#1b4a7a; --accent-soft:rgba(27,74,122,0.09);
+        --buy:#1f6b45; --buy-soft:rgba(31,107,69,0.10);
+        --rent:#a5344a; --rent-soft:rgba(165,52,74,0.10);
+        --sans: 'IBM Plex Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+        --mono: 'IBM Plex Mono', ui-monospace, 'SF Mono', 'Cascadia Code', monospace;
       }
       @media (prefers-color-scheme: dark) {
         :root:not([data-theme="light"]) {
-          --bg:#14171a; --panel:#1b1f23; --panel-2:#20252a; --line:#2a2f34; --line-2:#39414a;
-          --ink:#eef1f3; --text:#c3c8cc; --dim:#868d93; --dim-2:#5f676d;
-          --accent:#4fb3bf; --accent-soft:rgba(79,179,191,0.16);
-          --buy:#5aa87a; --buy-soft:rgba(90,168,122,0.16);
-          --rent:#cc8a63; --rent-soft:rgba(204,138,99,0.16);
+          --bg:#0c0e11; --panel:#121519; --panel-2:#181c21; --line:#232930; --line-2:#333b43;
+          --ink:#eef1f4; --text:#bfc5cc; --dim:#7f868e; --dim-2:#565d64;
+          --accent:#6aa2db; --accent-soft:rgba(106,162,219,0.14);
+          --buy:#519b70; --buy-soft:rgba(81,155,112,0.16);
+          --rent:#cf6f80; --rent-soft:rgba(207,111,128,0.16);
         }
       }
       * { box-sizing: border-box; }
       html, body { margin: 0; padding: 0; background: var(--bg); }
       .rb-page { min-height: 100vh; background: var(--bg); color: var(--text);
-        font-family: var(--sans); font-size: 14px; line-height: 1.5;
-        font-variant-numeric: tabular-nums; -webkit-font-smoothing: antialiased; }
-      .rb-shell { max-width: 1180px; margin: 0 auto; padding: 40px 24px 64px; }
-      .rb-header { margin-bottom: 28px; }
-      .rb-header-top { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; flex-wrap: wrap; max-width: 1180px; }
-      .rb-header-actions { display: flex; gap: 8px; }
-      .rb-ghost-btn { font: inherit; font-size: 12px; color: var(--accent); background: transparent;
-        border: 1px solid var(--line-2); border-radius: 6px; padding: 5px 10px; cursor: pointer; }
-      .rb-ghost-btn:hover { border-color: var(--accent); background: var(--accent-soft); }
-      .rb-wordmark { font-family: var(--serif); font-weight: 700; color: var(--ink);
-        font-size: 38px; letter-spacing: -0.01em; margin: 0 0 8px; }
-      .rb-tagline { font-size: 16px; color: var(--dim); margin: 8px 0 0; max-width: 56ch; }
+        font-family: var(--sans); font-size: 14px; line-height: 1.55;
+        font-variant-numeric: tabular-nums; -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; }
+      .rb-shell { max-width: 1160px; margin: 0 auto; padding: 48px 24px 72px; }
+      .rb-header { margin-bottom: 34px; }
+      .rb-header-top { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; flex-wrap: wrap; max-width: 1160px; }
+      .rb-header-actions { display: flex; gap: 8px; align-items: center; }
+      .rb-ghost-btn { font-family: var(--mono); font-size: 12px; color: var(--text); background: transparent;
+        border: 1px solid var(--line-2); border-radius: 5px; padding: 6px 11px; cursor: pointer; transition: border-color .12s, color .12s; }
+      .rb-ghost-btn:hover { border-color: var(--ink); color: var(--ink); }
+      .rb-wordmark { font-family: var(--sans); font-weight: 600; color: var(--ink);
+        font-size: 25px; letter-spacing: -0.02em; margin: 0; }
+      .rb-tagline { font-size: 15.5px; color: var(--dim); margin: 14px 0 0; max-width: 60ch; line-height: 1.5; }
 
-      .rb-grid { display: grid; grid-template-columns: 340px minmax(0, 1fr); gap: 28px; align-items: start; }
+      .rb-grid { display: grid; grid-template-columns: 336px minmax(0, 1fr); gap: 32px; align-items: start; }
       @media (max-width: 900px) { .rb-grid { grid-template-columns: minmax(0,1fr); } }
 
       /* inputs */
       .rb-inputs { display: flex; flex-direction: column; gap: 18px;
-        background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 18px; }
-      .rb-group-title { font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em;
-        color: var(--dim); margin: 0 0 10px; font-weight: 600; }
-      .rb-group-body { display: flex; flex-direction: column; gap: 10px; }
-      .rb-group + .rb-group { border-top: 1px solid var(--line); padding-top: 16px; }
+        background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 20px; }
+      .rb-group-title { font-family: var(--mono); font-size: 11px; letter-spacing: 0.02em;
+        color: var(--dim); margin: 0 0 12px; font-weight: 500; }
+      .rb-group-body { display: flex; flex-direction: column; gap: 11px; }
+      .rb-group + .rb-group { border-top: 1px solid var(--line); padding-top: 18px; }
       .rb-field { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 8px; }
       .rb-field-label { font-size: 13px; color: var(--text); }
-      .rb-field-note { grid-column: 1 / -1; font-size: 11px; color: var(--dim-2); text-align: right; margin-top: -4px; }
-      .rb-input { font: inherit; color: var(--ink); background: var(--panel-2); border: 1px solid var(--line-2);
-        border-radius: 6px; padding: 5px 8px; width: 100%; text-align: right; }
+      .rb-field-note { grid-column: 1 / -1; font-family: var(--mono); font-size: 11px; color: var(--dim-2); text-align: right; margin-top: -4px; }
+      .rb-input { font-family: var(--mono); font-size: 13px; color: var(--ink); background: var(--panel-2); border: 1px solid var(--line-2);
+        border-radius: 5px; padding: 6px 8px; width: 100%; text-align: right; }
       .rb-input:focus { outline: none; border-color: var(--accent); }
       .rb-money-input, .rb-num-input { display: inline-flex; align-items: center; gap: 4px; width: 128px; }
-      .rb-money-sign { color: var(--dim); font-size: 13px; }
+      .rb-money-sign { font-family: var(--mono); color: var(--dim); font-size: 13px; }
       .rb-money-input .rb-input { text-align: right; }
       .rb-num-input { position: relative; }
-      .rb-suffix { color: var(--dim); font-size: 12px; width: 20px; }
+      .rb-suffix { font-family: var(--mono); color: var(--dim); font-size: 12px; width: 20px; }
       .rb-num-accent .rb-input { border-color: var(--accent); background: var(--accent-soft); }
-      .rb-filing { display: inline-flex; border: 1px solid var(--line-2); border-radius: 6px; overflow: hidden; }
-      .rb-seg { font: inherit; font-size: 12px; text-transform: capitalize; color: var(--dim);
-        background: transparent; border: none; padding: 5px 12px; cursor: pointer; }
+      .rb-filing { display: inline-flex; border: 1px solid var(--line-2); border-radius: 5px; overflow: hidden; }
+      .rb-seg { font-family: var(--mono); font-size: 12px; color: var(--dim);
+        background: transparent; border: none; padding: 6px 12px; cursor: pointer; }
       .rb-seg + .rb-seg { border-left: 1px solid var(--line-2); }
-      .rb-seg-on { background: var(--accent-soft); color: var(--accent); font-weight: 600; }
+      .rb-seg-on { background: var(--ink); color: var(--bg); font-weight: 500; }
       input[type=number] { -moz-appearance: textfield; }
       input[type=number]::-webkit-outer-spin-button, input[type=number]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
-      .rb-payline { font-size: 12px; color: var(--dim); margin-top: 2px; }
-      .rb-payline b { color: var(--ink); }
+      .rb-payline { font-family: var(--mono); font-size: 12px; color: var(--dim); margin-top: 2px; }
+      .rb-payline b { color: var(--ink); font-weight: 500; }
 
-      .rb-field-slider { grid-template-columns: 1fr; gap: 6px; }
-      .rb-slider-value { float: right; color: var(--ink); font-weight: 600; }
-      .rb-slider-value-big { font-family: var(--serif); font-size: 16px; }
-      .rb-slider-note { color: var(--dim-2); font-weight: 400; }
+      .rb-field-slider { grid-template-columns: 1fr; gap: 7px; }
+      .rb-slider-value { float: right; font-family: var(--mono); color: var(--ink); font-weight: 500; }
+      .rb-slider-value-big { font-family: var(--mono); font-size: 15px; }
+      .rb-slider-note { font-family: var(--mono); color: var(--dim-2); font-weight: 400; }
       .rb-range { width: 100%; accent-color: var(--accent); }
 
       /* answer */
-      .rb-answer { display: flex; flex-direction: column; gap: 18px; min-width: 0; }
+      .rb-answer { display: flex; flex-direction: column; gap: 20px; min-width: 0; }
       .rb-presets { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
-      .rb-presets-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--dim); }
-      .rb-presets-chips { display: flex; gap: 8px; flex-wrap: wrap; }
-      .rb-chip { font: inherit; font-size: 12px; color: var(--text); background: var(--panel);
-        border: 1px solid var(--line-2); border-radius: 999px; padding: 5px 12px; cursor: pointer; }
-      .rb-chip:hover { border-color: var(--accent); color: var(--ink); }
-      .rb-chip-on { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); font-weight: 600; }
+      .rb-presets-label { font-family: var(--mono); font-size: 11px; letter-spacing: 0.02em; color: var(--dim); }
+      .rb-presets-chips { display: flex; gap: 7px; flex-wrap: wrap; }
+      .rb-chip { font-family: var(--mono); font-size: 12px; color: var(--text); background: transparent;
+        border: 1px solid var(--line-2); border-radius: 5px; padding: 5px 10px; cursor: pointer; transition: border-color .12s, color .12s; }
+      .rb-chip:hover { border-color: var(--ink); color: var(--ink); }
+      .rb-chip-on { background: var(--ink); border-color: var(--ink); color: var(--bg); font-weight: 500; }
       .rb-uk-presets { display: flex; flex-direction: column; gap: 10px; }
       .rb-uk-presets .rb-presets { justify-content: space-between; }
-      .rb-uk-note { font-size: 11px; color: var(--dim-2); margin: 0; max-width: 66ch; }
-      .rb-card { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 20px; }
-      .rb-card-title { font-family: var(--serif); font-size: 18px; color: var(--ink); margin: 0 0 4px; font-weight: 600; }
-      .rb-card-sub { font-size: 13px; color: var(--dim); margin: 0 0 16px; max-width: 62ch; }
+      .rb-uk-note { font-size: 11.5px; color: var(--dim-2); margin: 0; max-width: 66ch; line-height: 1.45; }
+      .rb-card { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 22px; }
+      .rb-card-title { font-family: var(--sans); font-size: 16px; color: var(--ink); margin: 0 0 5px; font-weight: 600; letter-spacing: -0.01em; }
+      .rb-card-sub { font-size: 13px; color: var(--dim); margin: 0 0 18px; max-width: 64ch; line-height: 1.5; }
 
-      .rb-verdict { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 24px; }
+      .rb-verdict { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 26px; }
       .rb-verdict-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
-      .rb-verdict-kicker { font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--dim); }
-      .rb-verdict-word { font-family: var(--serif); font-weight: 700; font-size: 44px; line-height: 1; letter-spacing: -0.01em; }
-      .rb-verdict-sentence { font-size: 15px; color: var(--text); margin: 14px 0 20px; max-width: 62ch; }
-      .rb-verdict-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; border-top: 1px solid var(--line); padding-top: 16px; }
+      .rb-verdict-kicker { font-family: var(--mono); font-size: 11px; letter-spacing: 0.02em; color: var(--dim); }
+      .rb-verdict-word { font-family: var(--sans); font-weight: 600; font-size: 40px; line-height: 1; letter-spacing: -0.02em; }
+      .rb-verdict-sentence { font-size: 15px; color: var(--text); margin: 16px 0 22px; max-width: 64ch; line-height: 1.55; }
+      .rb-verdict-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; border-top: 1px solid var(--line); padding-top: 18px; }
       @media (max-width: 560px) { .rb-verdict-stats { grid-template-columns: repeat(2, 1fr); } }
-      .rb-stat-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--dim); }
-      .rb-stat-value { font-family: var(--serif); font-size: 22px; color: var(--ink); margin-top: 3px; }
-      .rb-stat-note { font-size: 11px; color: var(--dim-2); }
+      .rb-stat-label { font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.02em; color: var(--dim); }
+      .rb-stat-value { font-family: var(--mono); font-size: 21px; font-weight: 500; color: var(--ink); margin-top: 5px; }
+      .rb-stat-note { font-family: var(--mono); font-size: 10.5px; color: var(--dim-2); }
 
       /* range bar */
       .rb-rangebar { margin-top: 4px; }
       .rb-rangebar-svg { width: 100%; height: 30px; display: block; }
-      .rb-rangebar-labels { position: relative; height: 34px; margin-top: 2px; font-size: 12px; }
-      .rb-rangebar-labels em { display: block; font-style: normal; font-size: 10px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--dim-2); }
+      .rb-rangebar-labels { position: relative; height: 36px; margin-top: 2px; font-family: var(--mono); font-size: 12px; }
+      .rb-rangebar-labels em { display: block; font-style: normal; font-size: 10px; letter-spacing: 0.02em; color: var(--dim-2); }
       .rb-range-worst { position: absolute; left: 0; color: var(--rent); }
       .rb-range-best { position: absolute; right: 0; text-align: right; color: var(--buy); }
       .rb-range-base { position: absolute; transform: translateX(-50%); text-align: center; color: var(--accent); }
-      .rb-mc { font-size: 13px; color: var(--text); margin: 16px 0 0; padding-top: 14px; border-top: 1px solid var(--line); }
-      .rb-mc b { color: var(--ink); }
+      .rb-mc { font-size: 13px; color: var(--text); margin: 16px 0 0; padding-top: 14px; border-top: 1px solid var(--line); line-height: 1.55; }
+      .rb-mc b { color: var(--ink); font-family: var(--mono); font-weight: 500; }
 
       /* chart */
       .rb-chart-svg { width: 100%; height: auto; display: block; }
-      .rb-chart-axis { display: flex; justify-content: space-between; font-size: 11px; color: var(--dim); margin-top: 4px; }
+      .rb-chart-axis { display: flex; justify-content: space-between; font-family: var(--mono); font-size: 10.5px; color: var(--dim); margin-top: 4px; }
       .rb-be-label { color: var(--accent); }
-      .rb-legend { display: flex; gap: 18px; margin-top: 10px; font-size: 12px; color: var(--text); }
-      .rb-legend i { display: inline-block; width: 10px; height: 3px; border-radius: 2px; margin-right: 6px; vertical-align: middle; }
+      .rb-legend { display: flex; gap: 18px; margin-top: 12px; font-family: var(--mono); font-size: 11.5px; color: var(--text); }
+      .rb-legend i { display: inline-block; width: 14px; height: 2.5px; border-radius: 1px; margin-right: 7px; vertical-align: middle; }
 
       /* tornado */
-      .rb-tornado { display: flex; flex-direction: column; gap: 10px; }
-      .rb-tornado-row { display: grid; grid-template-columns: 150px minmax(0,1fr) 56px; align-items: center; gap: 10px; }
+      .rb-tornado { display: flex; flex-direction: column; gap: 11px; }
+      .rb-tornado-row { display: grid; grid-template-columns: 150px minmax(0,1fr) 60px; align-items: center; gap: 10px; }
       .rb-tornado-name { font-size: 13px; color: var(--ink); }
-      .rb-tornado-band { display: block; font-size: 11px; color: var(--dim-2); }
+      .rb-tornado-band { display: block; font-family: var(--mono); font-size: 10.5px; color: var(--dim-2); }
       .rb-tornado-svg { width: 100%; height: 16px; display: block; }
-      .rb-tornado-swing { font-size: 12px; color: var(--text); text-align: right; }
-      @media (max-width: 560px) { .rb-tornado-row { grid-template-columns: 110px minmax(0,1fr) 48px; } }
+      .rb-tornado-swing { font-family: var(--mono); font-size: 12px; color: var(--text); text-align: right; }
+      @media (max-width: 560px) { .rb-tornado-row { grid-template-columns: 110px minmax(0,1fr) 52px; } }
 
       /* disclosures */
-      .rb-disclose { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 14px 20px; }
-      .rb-disclose summary { cursor: pointer; font-size: 13px; color: var(--accent); font-weight: 600; }
-      .rb-disclose ul { margin: 12px 0 2px; padding-left: 18px; color: var(--text); font-size: 13px; }
-      .rb-disclose li { margin-bottom: 8px; }
+      .rb-disclose { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 16px 22px; }
+      .rb-disclose summary { cursor: pointer; font-size: 13px; color: var(--ink); font-weight: 600; }
+      .rb-disclose ul { margin: 14px 0 2px; padding-left: 18px; color: var(--text); font-size: 13px; }
+      .rb-disclose li { margin-bottom: 9px; line-height: 1.55; }
       .rb-disclose b { color: var(--ink); }
 
-      .rb-footer { margin-top: 40px; font-size: 12px; color: var(--dim-2); max-width: 60ch; }
+      .rb-footer { margin-top: 44px; font-size: 12px; color: var(--dim-2); max-width: 62ch; line-height: 1.55; }
     `}</style>
   );
 }

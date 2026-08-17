@@ -6,7 +6,7 @@
  * principal. Everything is in integer cents; the interest each month is the
  * balance times the monthly rate, rounded to the cent, and the final
  * payment is adjusted so the balance lands on exactly zero rather than a
- * few cents off — which is what real servicers do.
+ * few cents off - which is what real servicers do.
  *
  * The closed-form payment formula and the iterated schedule are computed
  * independently, and the tests check they agree (the schedule pays the loan

@@ -14,19 +14,19 @@
  * costs the buyer had to sink. At any horizon the buyer could sell, we net
  * their home equity (after selling costs and the remaining loan) against
  * their side investments, and compare to the renter's portfolio. The output
- * is the difference at every horizon — which is what makes the break-even
+ * is the difference at every horizon - which is what makes the break-even
  * point fall out of a single pass rather than a guess.
  *
  * Conventions, stated because they change the answer:
  *  - Home value and the investment portfolios compound monthly at the
  *    month-equivalent of the annual rate, so annual figures are exact.
  *  - Rent, property tax, maintenance, insurance and HOA step once a year,
- *    the way real leases and assessments do — not smoothly.
+ *    the way real leases and assessments do - not smoothly.
  *  - Property tax and maintenance are a percentage of the *current* home
  *    value; insurance and HOA grow with general inflation.
  *  - The optional tax benefit is a simple marginal-rate deduction on
  *    mortgage interest plus property tax. It deliberately ignores the SALT
- *    cap and the standard-deduction crossover — see the README limitation —
+ *    cap and the standard-deduction crossover - see the README limitation -
  *    and defaults to off so the base case never flatters buying.
  */
 
@@ -50,7 +50,7 @@ export interface Inputs {
   readonly homeInsuranceAnnual: Cents;
   /** UK council tax: a flat annual charge (by property band, not a % of
    *  value), growing with inflation. 0 or omitted for the US model, which
-   *  uses propertyTaxPct instead. The two are alternatives — a property is
+   *  uses propertyTaxPct instead. The two are alternatives - a property is
    *  taxed one way or the other, never both. */
   readonly councilTaxAnnual?: Cents;
   /** Annual maintenance as a percentage of current home value. */
@@ -72,7 +72,7 @@ export interface Inputs {
   readonly marginalTaxRatePct: number;
   /** Federal standard deduction for the household. The mortgage-interest /
    *  SALT write-off is only worth anything to the extent itemizing beats
-   *  this — which, post-2018, it usually doesn't. */
+   *  this - which, post-2018, it usually doesn't. */
   readonly standardDeduction: Cents;
   /** State/local income (and other) taxes that share the $10k SALT cap with
    *  property tax. */
@@ -96,8 +96,8 @@ export const SALT_CAP: Cents = 1_000_000;
  * marginal rate applied only to the amount by which itemizing *beats* the
  * standard deduction. Property tax and other state/local taxes are capped at
  * the SALT limit first. Interest is annualized from the month (a fine
- * approximation as it declines slowly within a year). Returns 0 — as it
- * usually should post-2018 — whenever the standard deduction already wins.
+ * approximation as it declines slowly within a year). Returns 0 - as it
+ * usually should post-2018 - whenever the standard deduction already wins.
  */
 export function monthlyTaxBenefit(
   inputs: Inputs, monthlyInterest: Cents, monthlyPropertyTax: Cents,
@@ -154,7 +154,7 @@ export function project(inputs: Inputs, horizonMonths: number): Projection {
   const homePriceDollars = inputs.homePrice / 100;
 
   // PMI is charged monthly on the original loan while the balance is above
-  // 80% of the original price — i.e. only when the down payment was under
+  // 80% of the original price - i.e. only when the down payment was under
   // 20%, and only until amortization (or a lump payment) crosses that line.
   const pmiThreshold = roundToCents(homePriceDollars * 0.8);
   const pmiMonthlyAmount = loan > 0

@@ -66,7 +66,7 @@ export function applyRate(balance: Cents, rate: number): Cents {
 
 /** The two currencies the calculator speaks. The minor unit is 1/100 of the
  *  major unit for both (cents, pence), so the integer-minor-unit engine is
- *  identical — only the boundary formatting differs. */
+ *  identical - only the boundary formatting differs. */
 export type Currency = "USD" | "GBP";
 
 const LOCALE: Record<Currency, string> = { USD: "en-US", GBP: "en-GB" };
